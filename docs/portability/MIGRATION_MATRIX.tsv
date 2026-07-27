@@ -1,0 +1,13 @@
+Subsistema	Limite original	Limite portátil	Risco	Primeira ação
+Build	Makefile e toolchain MIPS	CMake independente	Médio	Preservar build matching
+Tipos	Tipos Psy-Q e suposições de 32 bits	Tipos de largura fixa	Médio	Criar sh_types.h
+Runtime	Globais e MainLoop	ShRuntime opaco	Alto	Criar lifecycle mínimo
+Timing	VSync e GsGetVcount	Relógio monotônico do host	Alto	Criar adaptador determinístico
+Entrada	Joy_ReadP1 e libkpad	ShInputState	Médio	Receber estado pelo host
+Arquivos	Fs_Queue e CD-ROM	Callbacks do host	Alto	Definir API de leitura
+Vídeo	GPU e ordering tables	Fila portátil de comandos	Muito alto	Capturar comandos do PS1
+Áudio	SPU e tarefas SD	Saída de áudio do host	Muito alto	Separar lógica e saída
+Overlays	Destinos fixos na RAM	Registro estático de módulos	Muito alto	Criar IDs e descritores
+RNG	g_RngSeed e Rng_Rand32	Módulo determinístico	Baixo	Primeiro corte vertical
+Estados	g_GameStateUpdateFuncs	Dispatcher do runtime	Médio	Encapsular após lifecycle
+Save	Memory card	Armazenamento persistente do host	Alto	Definir callbacks versionados
