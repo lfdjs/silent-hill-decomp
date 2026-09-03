@@ -1,6 +1,7 @@
 #ifndef SILENT_HILL_SH_API_H
 #define SILENT_HILL_SH_API_H
 
+#include "silent_hill/sh_game.h"
 #include "silent_hill/sh_host.h"
 #include "silent_hill/sh_input.h"
 #include "silent_hill/sh_io.h"

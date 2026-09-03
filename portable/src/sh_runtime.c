@@ -339,6 +339,7 @@ ShResult sh_runtime_create(
     }
 
     sh_overlay_manager_init(&runtime->overlays);
+    sh_game_controller_init(&runtime->game);
 
     memcpy(&runtime->host, config->host, sizeof(runtime->host));
     memcpy(

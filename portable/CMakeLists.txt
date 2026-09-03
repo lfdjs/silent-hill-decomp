@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(
     silent_hill_portable
-    VERSION 0.4.0
+    VERSION 0.5.0
     LANGUAGES C)
 
 include(CTest)
@@ -63,6 +63,8 @@ add_library(
     silent_hill_core_objects
     OBJECT
         src/sh_clock.c
+        src/sh_game.c
+        src/sh_reference_game.c
         src/sh_input.c
         src/sh_io.c
         src/sh_memory.c
@@ -141,6 +143,17 @@ if(SH_ENABLE_SANITIZERS AND
             -fsanitize=address,undefined)
 endif()
 
+add_executable(
+    silent-hill-headless
+    "${CMAKE_CURRENT_LIST_DIR}/../tools/portable/sh_headless_runner.c")
+
+target_link_libraries(
+    silent-hill-headless
+    PRIVATE
+        silent_hill_core)
+
+sh_configure_target(silent-hill-headless)
+
 if(BUILD_TESTING)
     foreach(
         test_name
@@ -152,7 +165,9 @@ if(BUILD_TESTING)
             input
             io
             memory
-            overlay)
+            overlay
+            game
+            reference_trace)
 
         add_executable(
             "sh_${test_name}_tests"

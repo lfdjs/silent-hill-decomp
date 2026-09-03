@@ -67,11 +67,16 @@ Status: concluída.
 
 ## Etapa 07 — Máquina de estados headless
 
-- inicializar estado mínimo do jogo;
-- registrar primeiros módulos reais;
-- executar transições selecionadas;
-- criar runner headless;
-- criar testes diferenciais.
+Status: concluída.
+
+- IDs de `GameState` e `SysState` espelhados na ABI portátil;
+- módulo `BODYPROG_REFERENCE_HEADLESS` no slot `ENGINE`;
+- fluxo de `GameState_Boot_Update` portado como referência;
+- transição determinística `Init/Boot -> KonamiLogo`;
+- runner `silent-hill-headless`;
+- snapshot observável de estado/steps/ações;
+- fixture determinística `reference_trace`;
+- estados ainda não portados marcados explicitamente como não implementados.
 
 ## Etapa 08 — Vídeo e áudio de referência
 

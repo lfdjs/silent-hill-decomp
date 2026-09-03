@@ -1,6 +1,6 @@
 # ABI C Portátil
 
-A etapa 06 implementa a ABI experimental `0.4.0`.
+A etapa 07 implementa a ABI experimental `0.5.0`.
 
 ## Lifecycle
 
@@ -53,6 +53,22 @@ ShResult sh_runtime_overlay_get_active(...);
 Os overlays portáteis são módulos C linkados estaticamente e selecionados por
 ID/slot. Não existe cópia de código executável para endereços PS1 no caminho
 nativo.
+
+## Estados de jogo headless
+
+```c
+ShResult sh_runtime_game_enable_reference(...);
+ShResult sh_runtime_game_disable_reference(...);
+ShResult sh_runtime_game_set_boot_signals(...);
+ShResult sh_runtime_game_get_snapshot(...);
+const char* sh_game_state_name(...);
+const char* sh_sys_state_name(...);
+```
+
+`ShGameState` e `ShSysState` preservam os valores numéricos dos enums atuais da
+decompilação. O primeiro módulo de referência porta somente o controle de
+`GameState_Boot_Update` e para explicitamente ao alcançar um estado ainda não
+implementado.
 
 ## Regras
 
