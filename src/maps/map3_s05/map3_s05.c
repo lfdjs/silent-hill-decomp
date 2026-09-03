@@ -202,7 +202,7 @@ void func_800D5C98(void) // 0x800D5C98
             g_SysWork.playerWork.player.position.vx     = Q12(20.4f);
             g_SysWork.playerWork.player.position.vz     = Q12(-20.0f);
             g_SysWork.playerWork.player.rotation.vy     = Q12_ANGLE(90.0f);
-            g_SysWork.playerWork.player.collision.state = CharaCollisionState_5;
+            g_SysWork.playerWork.player.collision.state = CharaCollisionState_Default;
 
             // Warp camera.
             Event_CameraPositionSet(NULL, Q12(18.29f), Q12(-0.92f), Q12(-19.71f), Q12(0.0f), Q12(0.0f), Q12(0.0f), Q12(0.0f), true);
@@ -449,7 +449,7 @@ void func_800D64E0(void) // 0x800D64E0
             g_SysWork.playerWork.player.position.vz     = Q12(-20.0f);
             g_SysWork.playerWork.player.rotation.vy     = Q12(0.25f);
             g_SysWork.playerWork.player.collision.state = CharaCollisionState_Ignore;
-            g_SysWork.playerWork.player.collision.state = CharaCollisionState_5;
+            g_SysWork.playerWork.player.collision.state = CharaCollisionState_Default;
 
             // Warp camera.
             Event_CameraPositionSet(NULL, Q12(17.15f), Q12(-1.32f), Q12(-18.71f), 0, 0, 0, 0, true);
@@ -633,7 +633,7 @@ void func_800D6CF0(void) // 0x800D6CF0
 
 void func_800D6D1C(void) // 0x800D6D1C
 {
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 11)
     {
         SysWork_StateStepSet(0, 15);
@@ -942,10 +942,10 @@ void Map_WorldObjectsUpdate(void) // 0x800D87AC
     s32     newZ;
     MAP_CHUNK_CHECK_VARIABLE_DECL();
 
-    cellX = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellX = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_SIZE);
     projCellX = (g_SysWork.playerWork.player.position.vx > Q12(0.0f)) ? (cellX + 1) : (cellX - 1);
 
-    cellZ = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_CELL_SIZE);
+    cellZ = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_SIZE);
     projCellZ = (g_SysWork.playerWork.player.position.vz > Q12(0.0f)) ? (cellZ + 1) : (cellZ - 1);
 
     collFlags = CollisionTriggerFlag_None;
@@ -970,7 +970,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D87AC
     {
         if (!Savegame_EventFlagGet(EventFlag_M3S05_CabinetPushed))
         {
-            collFlags |= CollisionTriggerFlag_1;
+            collFlags |= CollisionTriggerFlag_Objects;
             Savegame_EventFlagSet(EventFlag_288);
         }
         else

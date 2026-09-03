@@ -49,11 +49,11 @@ STATIC_ASSERT_SIZEOF(s_IpdCollSurface, 12);
 /** @brief IPD file collision subcell containing two split surfaces. */
 typedef struct _IpdCollSubcell
 {
-    /* 0x0+0  */ q7_8 field_0_0  : 14; // X. }
-    /* 0x0+14 */ u16  field_0_14 : 2;  // ID Values? } 
-    /* 0x2+0  */ q7_8 field_2_0  : 14; // Y. }
-    /* 0x2+14 */ u16  field_2_14 : 2;  // ID Values? } See `func_8006B318` definition for further explanation.
-    /* 0x4    */ q7_8 field_4;         // Z. }
+    /* 0x0+0  */ q7_8 field_0_0  : 14; // Z. Unsure, used as X in one place.
+    /* 0x0+14 */ u16  field_0_14 : 2;  // ID Values?
+    /* 0x2+0  */ q7_8 field_2_0  : 14; // X. Unsure, used as Y in one place.
+    /* 0x2+14 */ u16  field_2_14 : 2;  // ID Values? See `func_8006B318` definition for further explanation.
+    /* 0x4    */ q7_8 field_4;         // Y?
     /* 0x6    */ u8   splitVertexIdx0; // `s_IpdCollisionData::splitVertices` index.
     /* 0x7    */ u8   splitVertexIdx1; // `s_IpdCollisionData::splitVertices` index.
     /* 0x8    */ u8   surfaceIdx0;     // `s_IpdCollisionData::surfaces` index.
@@ -69,7 +69,7 @@ typedef struct _IpdCollisionData_18
     /* 0x0+12 */ u16      field_0_12    : 3;
     /* 0x0+15 */ u16      field_0_15    : 1;
     /* 0x2    */ SVECTOR3 offset;            /** Q7.8 */
-    /* 0x8    */ q7_8     field_8;
+    /* 0x8    */ q7_8     radiusOffset;
 } s_IpdCollisionData_18;
 STATIC_ASSERT_SIZEOF(s_IpdCollisionData_18, 10);
 
@@ -99,14 +99,13 @@ typedef struct _IpdCollisionData
     /* 0x20   */ s_IpdCollSubcellRange* subcellRanges;
     /* 0x24   */ u16                    field_24; // `ptr_24` size. `field_24`/`field_26` defined in ipd2obj but haven't seen used yet, might be size of `ptr_28`/`ptr_2C`.
     /* 0x26   */ u16                    field_26; // `ptr_26` size.
-    /* 0x28   */ u8*                    ptr_28;   // Accessed as array of indices into `subcellCheckIdx` by `func_8006E53C`.
+    /* 0x28   */ u8*                    ptr_28;   // Accessed as array of indices into `subcellCheckIdxs` by `func_8006E53C`.
     /* 0x2C   */ u8*                    ptr_2C;         
-    /* 0x30   */ u8                     subcellCheckCount; // Directly related to `subcellCheckIdx`.
+    /* 0x30   */ u8                     subcellCheckCount;
     /* 0x31   */ s8                     __pad[3];
-    /* 0x34   */ u8                     subcellCheckIdx[256]; // Index container.
-                                                              // This should be the same size as of the value assigned to
-                                                              // `s_IpdCollisionData::subcellCount`, but instead is assigned the
-                                                              // the max number that variable handles, which is 256 (same as a `char`).
+    /* 0x34   */ u8                     subcellCheckIdxs[256]; // This should be the same size as of the value assigned to
+                                                               // `s_IpdCollisionData::subcellCount`, but instead is assigned the
+                                                               // the max number that variable handles, which is 256 (same as a `char`).
 } s_IpdCollisionData;
 STATIC_ASSERT_SIZEOF(s_IpdCollisionData, 308);
 
@@ -123,8 +122,8 @@ STATIC_ASSERT_SIZEOF(s_IpdModelInfo, 16);
 /** @brief IPD file transformed model instance. TODO: Unsure. */
 typedef struct _IpdModelInstance
 {
-    /* 0x0 */ s_ModelHeader* modelHdr;
-    /* 0x4 */ MATRIX         mat; // TODO: Base transform matrix?
+    /* 0x0 */ s_ModelHeader* modelHdr; // TODO: Stores index at first before being updated to functional pointer.
+    /* 0x4 */ MATRIX         mat;      // TODO: Base transform matrix?
 } s_IpdModelInstance;
 STATIC_ASSERT_SIZEOF(s_IpdModelInstance, 36);
 
@@ -150,16 +149,16 @@ typedef struct _IpdHeader
 {
     /* 0x0  */ u8                 magic;
     /* 0x1  */ u8                 isLoaded; /** `bool` */
-    /* 0x3  */ s8                 cellX;
-    /* 0x3  */ s8                 cellZ;
+    /* 0x3  */ s8                 chunkX;
+    /* 0x3  */ s8                 chunkZ;
     /* 0x4  */ s_LmHeader*        lmHdr;
     /* 0x8  */ u8                 modelCount;
     /* 0x9  */ u8                 modelBufferCount;
     /* 0xA  */ u8                 modelOrderCount;
     /* 0xB  */ s8                 __pad_B[9];
-    /* 0x14 */ s_IpdModelInfo*    modelInfo;
+    /* 0x14 */ s_IpdModelInfo*    modelInfos;
     /* 0x18 */ s_IpdModelBuffer*  modelBuffers;
-    /* 0x1C */ u8                 textureCount; // Should it be `u32`?
+    /* 0x1C */ u8                 textureCount; // TODO: Should it be `u32`? Referenced once, likely not texture count.
                                                 // "`u8` - Relative pointer to textures list"
                                                 // "`u32` - Relative pointer to object order"
     /* 0x1D */ s8                 unk_1D[51];   // TODO: Actual texture data array?

@@ -32,7 +32,7 @@ void GameState_MovieIntroFadeIn_Update(void) // 0x801E2654
             break;
 
         case 1:
-            if (g_Controller0->heldBtnFlags != 0 || g_SysWork.gameStateCounter > SECONDS_60_FPS(5))
+            if (g_Controller0->buttonFlags.held != 0 || g_SysWork.gameStateCounter > SECONDS_60_FPS(5))
             {
                 ScreenFade_Start(false, false, false);
                 g_GameWork.gameStateSteps[0] = 2;
@@ -83,22 +83,22 @@ void GameState_DebugMoviePlayer_Update(void) // 0x801E2908
 {
     static s32 g_Debug_MoviePlayerIdx = 0; // 0x801E3F3C
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
     {
         Game_StateSetNext(GameState_Unk16); // Changes to non-existent state 22 and crashes. Maybe removed debug menu.
     }
 
-    if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickLeft)
+    if (g_Controller0->buttonFlags.pulsed & ControllerFlag_LStickHighLeft)
     {
         g_Debug_MoviePlayerIdx--;
     }
 
-    if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickRight)
+    if (g_Controller0->buttonFlags.pulsed & ControllerFlag_LStickHighRight)
     {
         g_Debug_MoviePlayerIdx++;
     }
 
-    Text_Debug_PositionSet(SCREEN_POSITION_X(12.5f), SCREEN_POSITION_Y(16.75f));
+    Text_Debug_PositionSet(SCREEN_WIDTH / 8, 40);
 
 #if VERSION_EQUAL_OR_OLDER(PROTO_981216)
     // Code seen in 98-12-16 to display movie number selection (`Text_Debug_Draw` was nullsub in those builds).
@@ -106,7 +106,7 @@ void GameState_DebugMoviePlayer_Update(void) // 0x801E2908
     Text_Debug_Draw(Text_Debug_IntToString(2, g_Debug_MoviePlayerIdx));
 #endif
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
     {
         open_main(FILE_XA_ZC_14392 - g_Debug_MoviePlayerIdx, 0);
     }
@@ -240,7 +240,7 @@ void movie_main(char* file_name, s32 f_size, s32 sector) // 0x801E2B9C
         strSync(&m->dec);
         VSync(SyncMode_Wait);
     }
-    while (!(g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    while (!(g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
            MainLoop_ShouldWarmReset() <= ResetType_None);
 
     SsSetSerialVol(0, 0, 0);

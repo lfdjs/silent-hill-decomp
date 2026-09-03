@@ -43,7 +43,7 @@ const VECTOR3 D_800CABE4 = { 0xFFF8C800, 0x00002000, 0x0006E800 };
 
 void func_800D61AC(void) // 0x800D61AC
 {
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 12)
     {
         // Warp player.
@@ -427,7 +427,7 @@ void func_800D6BC0(void) // 0x800D6BC0
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, FS_BUFFER_19);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_19));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_19));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -501,7 +501,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D7360
         }
         else
         {
-            Collision_FlagBitsSet(CollisionTriggerFlag_1);
+            Collision_FlagBitsSet(CollisionTriggerFlag_Objects);
         }
     }
     else

@@ -6,7 +6,7 @@
 #include "bodyprog/collision/collision.h"
 #include "bodyprog/chara/chara_model.h"
 #include "bodyprog/chara/spawn.h"
-#include "bodyprog/events/bgm.h"
+#include "bodyprog/events/bgm_update.h"
 #include "bodyprog/events/events_util.h"
 #include "bodyprog/events/map_msg.h"
 #include "bodyprog/formats/ipd.h"
@@ -134,7 +134,7 @@ typedef struct _GteScratchData
                         /* 0x4  */ s32     field_4;
                         /* 0x8  */ CVECTOR field_8;
                         /* 0xC  */ CVECTOR field_C;
-                        /* 0x10 */ u8      field_10;
+                        /* 0x10 */ u8      field_10; // `faceIdxs`.
                         /* 0x11 */ u8      field_11;
                         /* 0x12 */ u8      field_12;
                         /* 0x13 */ u8      field_13;
@@ -195,14 +195,15 @@ typedef struct
 } s_800AD4C8;
 STATIC_ASSERT_SIZEOF(s_800AD4C8, 24);
 
-typedef struct _RadioNpcInfo
+/** @brief Radio noise data for nearby enemies. */
+typedef struct _RadioNoise
 {
     /* 0x0 */ s8 prevIdx;
     /* 0x1 */ s8 idx;
     /* 0x2 */ s8 closeNpcInfoIdx;
-    /* 0x3 */ s8 field_3;
-} s_RadioNpcInfo;
-STATIC_ASSERT_SIZEOF(s_RadioNpcInfo, 4);
+    /* 0x3 */ s8 unused; /** @unused */
+} s_RadioNoise;
+STATIC_ASSERT_SIZEOF(s_RadioNoise, 4);
 
 typedef struct
 {
@@ -386,7 +387,7 @@ typedef struct
 typedef struct
 {
     /* 0x0   */ VECTOR3 field_0; // Q23.8 | Position.
-    /* 0xC   */ MATRIX  field_C;
+    /* 0xC   */ MATRIX  worldToScreenMat;
     /* 0x2C  */ s32     field_2C;
     /* 0x30  */ DVECTOR field_30;
     /* 0x34  */ q3_12   field_34[24];
@@ -394,12 +395,12 @@ typedef struct
     /* 0x94  */ q3_12   field_94[24];
     /* 0xC4  */ s16     field_C4;
     /* 0xC6  */ s16     field_C6;
-    /* 0xC8  */ s16     field_C8;
-    /* 0xCA  */ s16     field_CA;
-    /* 0xCC  */ s16     field_CC;
+    /* 0xC8  */ q3_12   field_C8;
+    /* 0xCA  */ q3_12   field_CA;
+    /* 0xCC  */ q3_12   field_CC; // Angle?
     /* 0xCE  */ s16     field_CE;
-    /* 0xD0  */ s32     field_D0;
-    /* 0xD4  */ s32     field_D4;
+    /* 0xD0  */ q19_12  field_D0;
+    /* 0xD4  */ q19_12  field_D4;
     /* 0xD8  */ s32     field_D8;
     /* 0xDC  */ s16     field_DC[4];
     /* 0xE4  */ s16     field_E4[4];
@@ -659,9 +660,6 @@ extern s_AnimInfo D_800A998C;
 /** Current player anim index store? */
 extern u8 D_800A9990;
 
-// Likely declared as static inside the function that uses it.
-extern s32 D_800A99A0;
-
 /** Relative file offset for map texture? */
 extern s8 D_800A99B5;
 
@@ -772,7 +770,7 @@ extern u32 D_800A9FB0;
 
 extern s32 D_800A9FB4[];
 
-extern u8 D_800AA604[41][16];
+extern u8 g_Sd_SongsChannelsForLayers[41][16];
 
 extern u8 D_800AE185;
 
@@ -780,7 +778,7 @@ extern u8 D_800AE186;
 
 extern s8 __pad_bss_800BCD81[3];
 
-extern s32 g_DeltaTimeCpy;
+extern q19_12 g_DeltaTimeCpy;
 
 extern s32 __pad_bss_800BCD88[2];
 
@@ -788,17 +786,16 @@ extern s_EventData* g_ItemTriggerEvents[];
 
 extern s32 __pad_bss_800BCD94[5];
 
-/** Radio SFX data. */
-extern s_RadioNpcInfo g_RadioNpcInfos[2];
+extern s_RadioNoise g_RadioNoise[2];
 
-extern s_MapPoint2d D_800BCDB0;
+extern s_MapPoint2d g_MapPoint;
 
 extern s32 __pad_bss_800BCDD0;
 
 /** Related to special item interactions. */
 extern s32 g_ItemTriggerItemIds[5];
 
-extern u8 D_800BCDD4;
+extern u8 g_MapAreaLoadCounter;
 
 extern s8 __pad_bss_800BCDD5[3];
 
@@ -828,7 +825,7 @@ extern u32 D_800A999C;
 
 extern u16 D_800BCCB2;
 
-extern s32 D_800BCD5C;
+extern s32 g_Bgm_LayersUpdated;
 
 extern s32 D_800BCD84;
 
@@ -1048,49 +1045,49 @@ void func_800414E0(GsOT* arg0, VECTOR3* arg1, s32 arg2, q19_12 angle0, q19_12 an
  * @param ipdBuf IPD chunk buffer.
  * @param ipdBufSize IPD chunk buffer size.
  */
-void Ipd_Init(s_LmHeader* lmHdr, s_IpdHeader* ipdBuf, s32 ipdBufSize);
+void WorldMap_Init(s_LmHeader* lmHdr, s_IpdHeader* ipdBuf, s32 ipdBufSize);
 
-void Ipd_GlobalLmInit(s_IpdLm* globalLm, s_LmHeader* lmHdr);
+void WorldMap_GlobalLmInit(s_GlobalPlm* globalPlm, s_LmHeader* lmHdr);
 
-void Ipd_GlobalLmHeaderInit(s_LmHeader* lmHdr);
+void WorldMap_GlobalLmHeaderInit(s_LmHeader* lmHdr);
 
 /** @brief Clears `queueIdx` in an array of chunks. */
-void Ipd_ChunkQueueIdxsClear(s_Chunk* chunks, s32 chunkCount);
+void WorldMap_ChunkQueueClear(s_MapChunk* cellBufferPtr, s32 activeChunkCount);
 
-void Ipd_TexturesInit(void);
+void WorldMap_TexturesInit(void);
 
-void Ipd_CollisionDataReset(void);
+void WorldMap_CollisionDataReset(void);
 
-/** @brief Places an chunk at given XZ chunk cell coordinates.
+/** @brief Places a chunk at given XZ chunk cell coordinates.
  *
  * @param ipdFileIdx Index of the IPD chunk file to place.
- * @param cellX X cell coordinate.
- * @param cellZ Z cell coordinate.
+ * @param chunkX X chunk coordinate.
+ * @param chunkZ Z chunk coordinate.
  */
-void Ipd_ChunkSet(s16 ipdFileIdx, s32 cellX, s32 cellZ);
+void WorldMap_ChunkSet(s16 ipdFileIdx, s32 chunkX, s32 chunkZ);
 
-void Ipd_ActiveChunksClear(void);
+void WorldMap_ActiveChunksClear(void);
 
-void Ipd_TexturesRefClear(void);
+void WorldMap_TexturesRefClear(void);
 
-void Ipd_WorldReset(void);
+void WorldMap_Reset(void);
 
-void Ipd_LmReset(void);
+void WorldMap_GlobalLmReset(void);
 
-s_Texture* Ipd_TextureInfoGet(char* texName);
+s_Texture* WorldMap_ActiveTextureInfoGet(char* texName);
 
-void Ipd_MapInfoSet(char* mapTag, e_FsFile plmIdx, s32 activeIpdCount, bool isExterior,
-                        e_FsFile ipdFileIdx, e_FsFile texFileIdx);
+void WorldMap_InfoSet(char* mapTag, e_FsFile plmIdx, s32 activeChunkCount, bool isExterior,
+                      e_FsFile ipdFileIdx, e_FsFile texFileIdx);
 
-void Ipd_ChunksClear(s_WorldMapWork* terrain, s32 activeChunksCount);
+void WorldMap_ChunksClear(s_WorldMapWork* terrain, s32 activeCellCount);
 
 /** @brief Locates all IPD files for a given map type.
  *
  * Example:
  * Map type THR.
- * `file 1100` is `THR0205.IPD`, `chunkGridCenter[2][5] = 1100`.
+ * `file 1100` is `THR0205.IPD`, `chunksGridCenter[2][5] = 1100`.
  */
-void Ipd_MakeGrid(s_WorldMapWork* terrain, char* mapTag, e_FsFile fileIdxStart);
+void WorldMap_MakeGrid(s_WorldMapWork* terrain, char* mapTag, e_FsFile fileIdxStart);
 
 /** @brief Converts two hex `char`s to an integer hex value.
  *
@@ -1100,7 +1097,7 @@ void Ipd_MakeGrid(s_WorldMapWork* terrain, char* mapTag, e_FsFile fileIdxStart);
  */
 bool ConvertHexToS8(s32* out, char hex0, char hex1);
 
-s_IpdCollisionData** Ipd_ActiveChunksCollisionDataGet(s32* collDataIdx);
+s_IpdCollisionData** WorldMap_ActiveChunksCollisionDataGet(s32* collDataIdx);
 
 /** @brief Gets the collision data at a given position.
  *
@@ -1108,7 +1105,7 @@ s_IpdCollisionData** Ipd_ActiveChunksCollisionDataGet(s32* collDataIdx);
  * @param posZ Z position.
  * @return Collision data.
  */
-s_IpdCollisionData* Ipd_CollisionDataGet(q19_12 posX, q19_12 posZ);
+s_IpdCollisionData* WorldMap_CollisionDataGet(q19_12 posX, q19_12 posZ);
 
 /** @brief Gets the location of a nearby world object model.
  *
@@ -1118,17 +1115,17 @@ s_IpdCollisionData* Ipd_CollisionDataGet(q19_12 posX, q19_12 posZ);
  * @param posZ Search Z position.
  * @return World object model location (`e_WorldModelLocation`).
  */
-s32 Map_WorldObjectModelLocationGet(s_WorldObjectModel* model, s_WorldObjectMetadata* metadata, q19_12 posX, q19_12 posZ);
+s32 WorldMap_ObjectModelLocationGet(s_WorldObjectModel* model, s_WorldObjectMetadata* metadata, q19_12 posX, q19_12 posZ);
 
-/** @brief Checks if an IPD file is loaded.
+/** @brief Checks if an IPD chunk file is loaded.
  *
- * @param ipdIdx IPD data index.
- * @return `true` if the IPD file is loaded, `false` otherwise.
+ * @param activeChunkIdx Active chunk index.
+ * @return `true` if the IPD chunk file is loaded, `false` otherwise.
  */
-bool Ipd_IsLoaded(s32 ipdIdx);
+bool WorldMap_ActiveChunkLoadedCheck(s32 activeChunkIdx);
 
 /** Starts the process of loading map geometry and assigns textures when the game is set in a loading screen mode? */
-void Ipd_ChunkInit(q19_12 curPosX, q19_12 curPosZ, q19_12 projPosX, q19_12 projPosZ);
+void WorldMap_ChunkInit(q19_12 curPosX, q19_12 curPosZ, q19_12 projPosX, q19_12 projPosZ);
 
 /** @brief Computes the distance from an XZ position to the edge of an XZ chunk cell boundary.
  * For exteriors, the cell boundary is expanded by `Q12(1.0f)`.
@@ -1136,103 +1133,105 @@ void Ipd_ChunkInit(q19_12 curPosX, q19_12 curPosZ, q19_12 projPosX, q19_12 projP
  *
  * @param posX X position.
  * @param posZ Z position.
- * @param cellX X cell coordinate.
- * @param cellZ Z cell coordinate.
+ * @param chunkX X chunk coordinate.
+ * @param chunkZ Z chunk coordinate.
  * @param isExterior `true` for padded exterior, `false` for non-padded interior.
  * @return Padded distance from the XZ position to the XZ chunk cell.
  */
-q19_12 Map_PaddedDistanceToChunkEdgeGet(q19_12 posX, q19_12 posZ, s32 cellX, s32 cellZ, bool isExterior);
+q19_12 WorldMap_PaddedDistanceToChunkEdgeGet(q19_12 posX, q19_12 posZ, s32 chunkX, s32 chunkZ, bool isExterior);
 
 /** @brief Computes the distance from an XZ position to the edge of an XZ chunk cell boundary.
  * If the position resides inside the chunk cell, the distance is `Q12(0.0f)`.
  *
  * @param posX X position.
  * @param posZ Z position.
- * @param cellX X cell coordinate.
- * @param cellZ Z cell coordinate.
+ * @param chunkX X chunk coordinate.
+ * @param chunkZ Z chunk coordinate.
  * @return Distance from the XZ position to the XZ chunk cell boundary.
  */
-q19_12 Map_DistanceToChunkEdgeGet(q19_12 posX, q19_12 posZ, s32 cellX, s32 cellZ);
+q19_12 WorldMap_DistanceToChunkEdgeGet(q19_12 posX, q19_12 posZ, s32 chunkX, s32 chunkZ);
 
 /** Loads geometry, sets materials and properly assigns the position of the map when loading a new room/map? */
-s32 Map_ChunkLoad(s_WorldMapWork* terrain, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ);
+s32 WorldMap_ChunkLoad(s_WorldMapWork* terrain, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ);
 
-void Ipd_ActiveChunksSample(s_WorldMapWork* terrain, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ1, bool isExterior);
+void WorldMap_ActiveChunksSample(s_WorldMapWork* terrain, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ1,
+                                 bool isExterior);
 
 /** @brief Computes the distance from a position to the nearest edge of a chunk.
  *
  * @param chunk Chunk to check.
  * @param TODO
  */
-void Ipd_DistanceToEdgeCalc(s_Chunk* chunk, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ1, bool isExterior);
+void WorldMap_DistanceToEdgeCalc(s_MapChunk* chunk, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ1,
+                                 bool isExterior);
 
 /** Sets materials for active chunks? */
-void Ipd_ChunkMaterialsApply(s_WorldMapWork* terrain);
+void WorldMap_ChunkMaterialsApply(s_WorldMapWork* terrain);
 
 /** @brief Gets the IPD chunk file index from cell coordinates.
  *
- * @param cellX X cell coordinate.
- * @param cellZ Z cell coordinate.
+ * @param chunkX X chunk coordinate.
+ * @param chunkZ Z chunk coordinate.
  * @return IPD chunk file index.
  */
-s32 Map_IpdChunkFileIdxGet(s32 cellX, s32 cellZ);
+s32 WorldMap_IpdChunkFileIdxGet(s32 chunkX, s32 chunkZ);
 
-bool Map_IsIpdPresentCheck(const s_Chunk* activeChunks, s32 cellX, s32 cellZ);
+bool WorldMap_IsChunkPresentCheck(const s_MapChunk* activeChunks, s32 chunkX, s32 chunkZ);
 
-s_Chunk* Ipd_FreeChunkFind(s_Chunk* activeChunks, bool isExterior);
+s_MapChunk* WorldMap_FreeChunkSpaceFind(s_MapChunk* activeChunks, bool isExterior);
 
-s32 Ipd_LoadStart(s_Chunk* chunk, e_FsFile fileIdx, s32 cellX, s32 cellZ, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ1, bool isExterior);
+s32 WorldMap_ChunkLoadStart(s_MapChunk* chunk, e_FsFile fileIdx, s32 chunkX, s32 chunkZ, q19_12 posX0, q19_12 posZ0, q19_12 posX1, q19_12 posZ1, bool isExterior);
 
-/** Checks if currently loaded chunks have been loaded properly. */
-bool Ipd_ChunksLoadedCheck(void);
+/** @brief Checks if all base map data (IPD and global LM models) have been loaded properly. */
+bool WorldMap_ActiveModelsLoadStateCheck(void);
 
 /** @brief Checks if the player is in close proximity to an unloaded ahead which should be loaded.
  *
  * @return `true` if a new chunk needs to be loaded, `false` otherwise.
  */
-bool Ipd_NextChunkLoadCheck(void);
+bool WorldMap_NextChunkLoadCheck(void);
 
 /** Checks if a position is within the current map chunk. */
-bool Ipd_CloseChunkEdgeCheck(q19_12 posX, q19_12 posZ);
+bool WorldMap_CloseChunkEdgeCheck(q19_12 posX, q19_12 posZ);
 
-void Ipd_ChunksDraw(GsOT* ot, bool arg1);
+void WorldMap_ChunksDraw(GsOT* ot, bool arg1);
 
-bool Ipd_CellPositionMatchCheck(s_Chunk* chunk, s_WorldMapWork* terrain);
+bool WorldMap_ChunkPositionMatchCheck(s_MapChunk* chunk, s_WorldMapWork* terrain);
 
 /** Checks if PLM texture is loaded? */
-bool Ipd_IsTextureLoaded(s_IpdHeader* ipdHdr);
+bool WorldMap_TextureLoadedCheck(s_IpdHeader* ipdHdr);
 
-s_IpdCollisionData* Ipd_HeaderCollisionDataGet(s_IpdHeader* ipdHdr);
+s_IpdCollisionData* WorldMap_HeaderCollisionDataGet(s_IpdHeader* ipdHdr);
 
-void Ipd_LoadedChunkInit(s_IpdHeader* ipdHdr, s_LmHeader** lmHdrs, s32 lmHdrCount,
-              s_ActiveChunkTextures* fullPageActiveTexs, s_ActiveChunkTextures* halfPageActiveTexs,
-              e_FsFile fileIdx);
+void WorldMap_ChunkPropertiesSet(s_IpdHeader* ipdHdr, s_LmHeader** lmHdrs, s32 lmHdrCount,
+                                 s_ActiveChunkTextures* fullPageActiveTexs, s_ActiveChunkTextures* halfPageActiveTexs,
+                                 e_FsFile fileIdx);
 
-void Ipd_MaterialsLoad(s_IpdHeader* ipdHdr,
-                       s_ActiveChunkTextures* fullPageActiveTexs, s_ActiveChunkTextures* halfPageActiveTexs,
-                       e_FsFile fileIdx);
+void WorldMap_ChunkMaterialsLoad(s_IpdHeader* ipdHdr,
+                                 s_ActiveChunkTextures* fullPageActiveTexs, s_ActiveChunkTextures* halfPageActiveTexs,
+                                 e_FsFile fileIdx);
 
 /** Checks if IPD is loaded before returning texture count? */
-s32 Ipd_HalfPageMaterialCountGet(s_IpdHeader* ipdHdr);
+s32 WorldMap_ChunkHalfPageMaterialCountGet(s_IpdHeader* ipdHdr);
 
 /** Returns inverse result of `LmFilter_IsHalfPage`. */
 bool LmFilter_IsFullPage(s_Material* mat);
 
 bool LmFilter_IsHalfPage(s_Material* mat);
 
-void Ipd_HeaderPtrsInit(s_IpdHeader* ipdHdr);
+void WorldMap_ChunkHeaderPtrsInit(s_IpdHeader* ipdHdr);
 
 /** @brief Assigns `s_ModelHeader` pointers to models in `s_IpdHeader` by searching the given `s_LmHeader` array. */
-void Ipd_HeaderModelLinkObjectLists(s_IpdHeader* ipdHdr, s_LmHeader** lmHdrs, s32 lmHdrCount);
+void WorldMap_ModelLinkObjectLists(s_IpdHeader* ipdHdr, s_LmHeader** lmHdrs, s32 lmHdrCount);
 
 /** @brief Searches `s_LmHeader` for objects with the given `objName`. */
 s_ModelHeader* LmHeader_ModelHeaderSearch(u_Filename* modelName, s_LmHeader* lmHdr);
 
 /** @brief Assigns `s_ModelHeader` pointers to each `s_IpdModelBuffer` in `s_IpdHeader`. */
-void Ipd_HeaderModelBufferLinkObjectLists(s_IpdHeader* ipdHdr, s_IpdModelInfo* ipdModels);
+void WorldMap_ModelBufferLinkObjectLists(s_IpdHeader* ipdHdr, s_IpdModelInfo* ipdModelInfos);
 
-/** Sets IPD collision data chunk cells? */
-void func_80044044(s_IpdHeader* ipd, s32 cellX, s32 cellZ);
+/** Sets IPD collision data chunks? */
+void func_80044044(s_IpdHeader* ipd, s32 chunkX, s32 chunkZ);
 
 /** @brief Draws an IPD chunk.
  *
@@ -1242,7 +1241,7 @@ void func_80044044(s_IpdHeader* ipd, s32 cellX, s32 cellZ);
  * @param ot Ordering table.
  * @param arg4 TODO
  */
-void Ipd_ChunkDraw(s_IpdHeader* ipdHdr, q19_12 posX, q19_12 posZ, GsOT* ot, bool arg4);
+void WorldMap_Draw(s_IpdHeader* ipdHdr, q19_12 posX, q19_12 posZ, GsOT* ot, bool arg4);
 
 /** @brief Checks if an IPD chunk subcell is visible.
  *
@@ -1251,7 +1250,7 @@ void Ipd_ChunkDraw(s_IpdHeader* ipdHdr, q19_12 posX, q19_12 posZ, GsOT* ot, bool
  * @param subcellZ Z subcell position.
  * @param posX X cell position? TODO: Subcell/cell intent unclear, needs more research.
  */
-bool Gfx_ChunkSubcellVisibleCheck(s_IpdModelBuffer* modelBuf, q7_8 subcellX, q7_8 subcellZ, q23_8 posX, q23_8 posZ);
+bool WorldMap_SubcellVisibleCheck(s_IpdModelBuffer* modelBuf, q7_8 subcellX, q7_8 subcellZ, q23_8 posX, q23_8 posZ);
 
 void Anim_BoneInit(s_AnmHeader* anmHdr, GsCOORDINATE2* boneCoords);
 
@@ -1323,7 +1322,7 @@ void func_80044F14(GsCOORDINATE2* coord, q3_12 rotZ, q3_12 rotX, q19_12 rotY);
 s8 Bone_ModelIdxGet(s8* ptr, bool arg1);
 
 /** Skeleton setup? Assigns bones pointer for the skeleton and resets fields. */
-void Skeleton_Init(s_Skeleton* skel, s_LinkedBone* bones, u8 boneCount);
+void Skeleton_Init(s_Skeleton* skel, s_BoneNode* boneHierarchy, u8 boneCount);
 
 /** Clears skeleton bone flags/mask. Called by `Skeleton_Init`. */
 void func_80045014(s_Skeleton* skel);
@@ -1332,13 +1331,13 @@ void func_80045014(s_Skeleton* skel);
 void func_8004506C(s_Skeleton* skel, s_LmHeader* lmHdr);
 
 /** Anim func. */
-void func_80045108(s_Skeleton* skel, s_LmHeader* lmHdr, s8* arg2, s32 arg3);
+void func_80045108(s_Skeleton* skel, s_LmHeader* lmHdr, s8* arg2, bool cond);
 
 /** Anim func. */
 void Skeleton_BoneModelAssign(s_Skeleton* skel, s_LmHeader* lmHdr, s8* arg2);
 
 /** Anim func. Param names are rough. */
-void func_80045258(s_LinkedBone** boneOrd, s_LinkedBone* bones, s32 boneIdx, s_LmHeader* lmHdr);
+void func_80045258(s_BoneNode** boneOrd, s_BoneNode* boneHierarchy, s32 boneIdx, s_LmHeader* lmHdr);
 
 /** Anim func. */
 void func_800452EC(s_Skeleton* skel);
@@ -1419,7 +1418,7 @@ s32 WorldEnv_LightDirectionAndIntensityGet(SVECTOR* dir);
 
 /** Light function. */
 void Gfx_FlashlightPositionUpdate(q19_12 lightIntensity, q3_12 lensFlareIntensity, GsCOORDINATE2* coord0, GsCOORDINATE2* coord1,
-                   SVECTOR* rot, q19_12 posX, q19_12 posY, q19_12 posZ, s_WaterZone* waterZones);
+                                  SVECTOR* rot, q19_12 posX, q19_12 posY, q19_12 posZ, s_WaterZone* waterZones);
 
 /** Light function. */
 void func_80055648(s32 lightIntensity, const SVECTOR* dir);
@@ -1474,8 +1473,8 @@ void func_8005A42C(s_GteScratchData* scratchData, q19_12 alpha);
 
 void func_8005A478(s_GteScratchData* scratchData, q19_12 alpha);
 
-/** `scratchData` is unused? */
-void func_8005A838(s_GteScratchData* scratchData, s32 scale);
+/** `scratchData` is unused. */
+void func_8005A838(s_GteScratchData* scratchData, q19_12 scale);
 
 void func_8005A900(s_MeshHeader* meshHdr, s32 offset, s_GteScratchData* scratchData, MATRIX* viewMat);
 
@@ -1627,32 +1626,18 @@ void func_8008E794(VECTOR3* posXz, q3_12 angle, q19_12 posY);
 
 void func_8008EA68(SVECTOR* arg0, VECTOR3* posXz, q19_12 posY);
 
-// =========================
-// `bodyprog_bgm_80087EA8.c`
-// =========================
-
-/** @brief Plays a new background music track. If the track is already playing, the request is ignored.
- *
- * @param bgmIdx Index of the background music track to play.
- */
-void Bgm_PlayNewTrack(s32 bgmIdx);
-
-/** @brief Handles a multi-step crossfade to a new track.
- *
- * @param bgmIdx Index of the background music track to play.
- */
-void Bgm_CrossfadeToTrack(s32 bgmIdx);
-
-/** @brief Crossfades the currently playing background music track to silence. */
-void Bgm_CrossfadeToSilence(void);
-
-/** State handler. */
-void func_80088048(void);
-
-/** State handler. */
-void func_800880F0(bool bool);
-
 // ========================
+
+void Game_MapRoomIdxUpdate(void);
+
+/** @unused */
+s32 func_8003647C(void);
+
+/** @unused */
+s32 func_80036498(void);
+
+// Used in some RoomBgmInit funcs.
+u32 func_800364BC(void);
 
 void Gfx_CursorDraw(s32 x0, s16 y0, s32 x1, s16 y1, s16 arg4, s16 arg5, s16 arg6, s32 arg7, s32 arg8, u32 arg9, s16 argA, s32 argB);
 
@@ -1968,12 +1953,12 @@ void MainMenu_SelectedOptionIdxReset(void);
 
 // ====================
 
-/** @brief Gets the bones of a registered character model.
+/** @brief Gets the bone nodes of a registered character model.
  *
- * @param charaId ID of the character for which to get the skeleton bones (`e_CharaId`).
- * @return Character model bones or `NULL` if the character model is unregistered.
+ * @param charaId ID of the character for which to get the skeleton bone nodes (`e_CharaId`).
+ * @return Character model  bone nodes. `NULL` if the character model is unregistered.
  */
-s_LinkedBone* WorldGfx_CharaModelBonesGet(e_CharaId charaId);
+s_BoneNode* WorldGfx_CharaModelBoneNodesGet(e_CharaId charaId);
 
 void GameFs_BgEtcGfxLoad(void);
 
@@ -1989,10 +1974,9 @@ void GameFs_CommonItemsTextureLoad(void);
  */
 s32 Map_SpeedZoneTypeGet(q19_12 posX, q19_12 posZ);
 
-/** Used in map loading. Something related to screen.
- * Removing it causes the game to get stuck at the loading screen.
+/** @brief Initializes world and clear any previously loaded object placement.
  */
-void WorldGfx_Init(void);
+void World_Init(void);
 
 /** Something related to player model loading. */
 void WorldGfx_HeldItemModelFree(void);
@@ -2121,13 +2105,16 @@ void func_8007E860(void);
 
 void func_8007E8C0(void);
 
+/** @brief Clears NPC animation data from memory. */
+void Anim_CharaTypeAnimInfoClear(void);
+
 /** Loads player animations for a given map. Maybe for cutscenes?
  *
  * @param mapIdx Map index.
  */
 void GameFs_PlayerMapAnimLoad(s32 mapIdx);
 
-void func_80070B84(s_SubCharacter* player, q19_12 moveDistMax, q19_12 arg2, s32 keyframeIdx);
+void func_80070B84(s_SubCharacter* player, q19_12 baseMoveSpeed, q19_12 topMoveSpeed, s32 keyframeIdx);
 
 void func_80070DF0(s_PlayerExtra* extra, s_SubCharacter* player, s32 weaponAttack, s32 animStatus);
 

@@ -86,7 +86,7 @@ void MapEvent_CafeCutscene(void) // 0x800DA980
     #define cybilChara g_SysWork.npcs[0]
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 5 && g_SysWork.sysStateSteps[0] < 47)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -117,7 +117,7 @@ void MapEvent_CafeCutscene(void) // 0x800DA980
             SysWork_StateStepIncrement(0);
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_9);
+            Bgm_CrossfadeToTrack(BgmCmd_Track9);
             break;
 
         case 2:
@@ -400,7 +400,7 @@ void MapEvent_CafeCutscene(void) // 0x800DA980
 
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, FS_BUFFER_11);
@@ -447,7 +447,7 @@ void MapEvent_ToBeContinued(void) // 0x800DB790
 
         case 5:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
-            if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                  g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 SysWork_StateStepIncrement(0);
@@ -473,7 +473,7 @@ void MapEvent_ToBeContinued(void) // 0x800DB790
 
         case 9:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
-            if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                  g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 SysWork_StateStepIncrement(0);
@@ -542,7 +542,7 @@ void MapEvent_AirScreamerIntroCutscene(void) // 0x800DBAA0
             SysWork_StateStepIncrement(0);
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_30);
+            Bgm_CrossfadeToTrack(BgmCmd_Track30);
             break;
 
         case 2:
@@ -691,7 +691,7 @@ void MapEvent_AirScreamerIntroCutscene(void) // 0x800DBAA0
             airScreamerChara.position.vz += Q12_MULT(Math_Cos(airScreamerChara.rotation.vy), Q12(0.2f));
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -791,7 +791,7 @@ void MapEvent_MapItemTake(void) // 0x800DC3C8
             Dms_CharacterTransformGet(&airScreamerChara.position, &airScreamerChara.rotation, "BIRD", 0, FS_BUFFER_11);
 
             // Set camera.
-            vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, 0, FS_BUFFER_11));
+            vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, 0, FS_BUFFER_11));
             vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
             vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 

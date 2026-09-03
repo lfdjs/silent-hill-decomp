@@ -83,7 +83,9 @@ typedef enum _MapIdx
 
 /** @brief Used as index into `MAP_INFOS` array. 
  *
- * @note R: "Real", U: "Underworld".
+ * @note
+ * R: "Real"
+ * U: "Underworld"
  */
 typedef enum _MapType
 {
@@ -151,7 +153,8 @@ typedef enum _WorldModelLocation
     WorldModelLocation_Chunk1 = 2,
     WorldModelLocation_Chunk2 = 3,
     WorldModelLocation_Chunk3 = 4,
-    WorldModelLocation_Chunk4 = 5
+    WorldModelLocation_Chunk4 = 5,
+    WorldModelLocation_Unk6   = 6
 } e_WorldModelLocation;
 
 // Something related to enemies attacks.
@@ -409,7 +412,7 @@ typedef struct _MapOverlayHdr
     /* 0xC   */ s32                    (*func_C)();
                 // 3 bytes of padding.
     /* 0x10  */ void                   (*bgmEvent)(bool);
-    /* 0x14  */ s8                     bgmIdx;
+    /* 0x14  */ s8                     bgmCmd;
     /* 0x15  */ u8                     ambientAudioIdx; // Ambient file index from `g_AmbientVabTaskLoadCmds`.
     /* 0x16  */ s8                     field_16;        // Set ambient tint and draw distance.
                                                         // A value of 3 sets the map to night.

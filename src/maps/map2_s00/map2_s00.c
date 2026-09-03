@@ -327,7 +327,7 @@ void MapEvent_AtWaterWorks(void) // 0x800E7E60
                     Event_WaitTimer(Q12(3.5f), false);
 
                     if (g_SysWork.sysStateSteps[0] == sysState0 &&
-                        (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+                        (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                           g_GameWorkPtr->config.controllerConfig.cancel)))
                     {
                         SysWork_StateStepSet(0, 3);
@@ -450,7 +450,7 @@ void MapEvent_CutsceneExitCafe(void) // 0x800E83C0
     s32 zoomHuh;
     s16 curve;
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip)
     {
         if (g_SysWork.sysStateSteps[0] == 2)
         {
@@ -569,7 +569,7 @@ void MapEvent_CutsceneExitCafe(void) // 0x800E83C0
             g_Gfx_PaperMapMarkingAlpha++;
             if (g_Gfx_PaperMapMarkingAlpha >= 128)
             {
-                if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+                if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                      g_GameWorkPtr->config.controllerConfig.cancel))
                 {
                     SysWork_StateStepIncrement(0);
@@ -625,7 +625,7 @@ void MapEvent_CherylsSketchbook(void) // 0x800E8C0C
 {
     s16 curve;
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip)
     {
         if (!D_800F2295)
         {
@@ -776,7 +776,7 @@ void MapEvent_CherylsSketchbook(void) // 0x800E8C0C
             D_800F2298++;
             if (D_800F2298 >= 0x80)
             {
-                if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter | g_GameWorkPtr->config.controllerConfig.cancel))
+                if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter | g_GameWorkPtr->config.controllerConfig.cancel))
                 {
                     SysWork_StateStepIncrement(0);
                 }
@@ -1248,7 +1248,7 @@ void func_800E9DD8(void) // 0x800E9DD8
         case 5:
             Event_DisplayMapMsg(false, g_DoorOfEclypse_MapMsgIdx, 0, 0, 0, false);
             Screen_BackgroundImgDrawAlt(D_800F22A0);
-            Sd_PlaySfx(Sfx_Unk1390, Q8(0.0f), Q8(0.5f));
+            Sd_SfxPlay(Sfx_Unk1390, Q8(0.0f), Q8(0.5f));
             SysWork_StateStepIncrement(0);
             break;
 
@@ -1289,7 +1289,7 @@ void func_800E9DD8(void) // 0x800E9DD8
             Screen_BackgroundImgDrawAlt(D_800F22A0);
             Event_WaitTimer(Q12(1.0f), false);
 
-            if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                  g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 SysWork_StateStepIncrement(0);
@@ -1545,7 +1545,7 @@ void func_800EA960(void) // 0x800EA960
                 D_800F5344.vz = 0;
 
                 Sd_SfxStop(Sfx_Unk1484);
-                Sd_PlaySfx(Sfx_Unk1485, Vc_StereoBalanceGet(&Q12_VECTOR3(-35.0f, 0.0f, 352.0f)), Q8(0.0f));
+                Sd_SfxPlay(Sfx_Unk1485, Vc_StereoBalanceGet(&Q12_VECTOR3(-35.0f, 0.0f, 352.0f)), Q8(0.0f));
                 SysWork_StateStepIncrement(0);
             }
             break;
@@ -1651,7 +1651,7 @@ void func_800EAD2C(void) // 0x800EAD2C
             {
                 D_800F5344.vz = 0;
                 Sd_SfxStop(Sfx_Unk1484);
-                Sd_PlaySfx(Sfx_Unk1485, Vc_StereoBalanceGet(&Q12_VECTOR3(-35.0f, 0.0f, 352.0f)), Q8(0.0f));
+                Sd_SfxPlay(Sfx_Unk1485, Vc_StereoBalanceGet(&Q12_VECTOR3(-35.0f, 0.0f, 352.0f)), Q8(0.0f));
                 SysWork_StateStepIncrement(0);
             }
             break;
@@ -1985,19 +1985,19 @@ void Map_WorldObjectsInit(void) // 0x800EB908
 
     if (g_SavegamePtr->gameDifficulty == GameDifficulty_Easy)
     {
-        g_SysWork.npcFlagsId = 2;
+        g_SysWork.npcFlagId = 2;
     }
     else if (g_SavegamePtr->gameDifficulty == GameDifficulty_Normal)
     {
-        g_SysWork.npcFlagsId = 3;
+        g_SysWork.npcFlagId = 3;
     }
     else
     {
-        g_SysWork.npcFlagsId = 4;
+        g_SysWork.npcFlagId = 4;
     }
 
-    g_SysWork.npcFlagsId++;
-    SysWork_NpcFlagSet(g_SysWork.npcFlagsId - 1);
+    g_SysWork.npcFlagId++;
+    SysWork_NpcFlagSet(g_SysWork.npcFlagId - 1);
 
     WorldObject_ModelNameSet(&g_CommonWorldObjects[0], g_CommonWorldObjectNames[2]);
     WorldObject_ModelNameSet(&g_CommonWorldObjects[1], g_CommonWorldObjectNames[3]);
@@ -2026,8 +2026,8 @@ void Map_WorldObjectsUpdate(void) // 0x800EC080
 
     flags = 0;
 
-    cellZ0 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_CELL_SIZE);
-    cellX0 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellZ0 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_SIZE);
+    cellX0 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_SIZE);
 
     if (g_SysWork.playerWork.player.position.vx > Q12(0.0f))
     {
@@ -2190,8 +2190,8 @@ void Map_WorldObjectsUpdate(void) // 0x800EC080
             break;
     }
 
-    cellZ1 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_CELL_SIZE);
-    cellX1 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellZ1 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_SIZE);
+    cellX1 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_SIZE);
 
     if (g_SysWork.playerWork.player.position.vx > Q12(0.0f))
     {
@@ -2268,8 +2268,8 @@ void Map_WorldObjectsUpdate(void) // 0x800EC080
             break;
     }
 
-    cellZ2 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_CELL_SIZE);
-    cellX2 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellZ2 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_SIZE);
+    cellX2 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_SIZE);
 
     if (g_SysWork.playerWork.player.position.vx > Q12(0.0f))
     {

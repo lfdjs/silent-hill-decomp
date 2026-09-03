@@ -36,6 +36,7 @@
 // STATIC VARIABLES
 // ========================================
 
+/** @brief Game system state functions. Used with `e_SysState`. */
 static void (*g_SysStateFuncs[])(void) = {
     SysState_Gameplay_Update,
     SysState_OptionsMenu_Update,
@@ -57,18 +58,18 @@ static void (*g_SysStateFuncs[])(void) = {
 /** Used to store the previous delta time state of the delta timer. There are some instances where 2D backgrounds
  * are drawn using `g_DeltaTimeRaw` while `g_DeltaTime` is stopped.
  */
-static s32 g_DeltaTimeCpy;
+static q19_12 g_DeltaTimeCpy;
 
 // ========================================
 // GLOBAL VARIABLES
 // ========================================
 
-s_EventData*   g_ItemTriggerEvents[];
-s_RadioNpcInfo g_RadioNpcInfos[2];
-s_MapPoint2d   D_800BCDB0;
-s32            g_ItemTriggerItemIds[5];
-u8             D_800BCDD4;
-s_EventData*   g_MapEventData;
+s_EventData* g_ItemTriggerEvents[];
+s_RadioNoise g_RadioNoise[2];
+s_MapPoint2d g_MapPoint;
+s32          g_ItemTriggerItemIds[5];
+u8           g_MapAreaLoadCounter;
+s_EventData* g_MapEventData;
 
 void GameState_InGame_Update(void) // 0x80038BD4
 {
@@ -85,7 +86,7 @@ void GameState_InGame_Update(void) // 0x80038BD4
 
         case 1:
             DrawSync(SyncMode_Wait);
-            func_80037154();
+            Game_RadioNoiseReset();
             Game_MapRoomIdxUpdate();
             func_800892A4(1);
 
@@ -109,6 +110,7 @@ void GameState_InGame_Update(void) // 0x80038BD4
         g_DeltaTimeCpy = g_DeltaTimeRaw;
     }
 
+    // Run system state.
     if (g_SysWork.sysState == SysState_Gameplay)
     {
         g_SysWork.isMgsStringSet = false;
@@ -133,16 +135,19 @@ void GameState_InGame_Update(void) // 0x80038BD4
 
     D_800A9A0C = ScreenFade_IsFinished() && Fs_QueueChunksLoad();
 
-    if (!(g_SysWork.bgmStatusFlags & BgmStatusFlag_Pause) && g_MapOverlayHdr.updateWorldObjects != NULL)
+    // Update world objects if not paused.
+    if (!(g_SysWork.bgmStatusFlags & BgmStatusFlag_Pause) &&
+        g_MapOverlayHdr.updateWorldObjects != NULL)
     {
         g_MapOverlayHdr.updateWorldObjects();
     }
 
     Screen_CutsceneCameraStateUpdate();
-    Bgm_TrackUpdate(false);
+    Bgm_Update(false);
     Demo_DemoRandSeedRestore();
     Demo_DemoRandSeedRestore();
 
+    // Update world scene if not paused.
     if (!(g_SysWork.bgmStatusFlags & BgmStatusFlag_Pause))
     {
         World_NearbyPlayerCollisionTriggersGet();
@@ -228,7 +233,7 @@ void SysState_Gameplay_Update(void) // 0x80038BD4
         return;
     }
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.light &&
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.light &&
         g_SysWork.field_2388.field_154.effectsInfo.field_0.s_field_0.field_0 & (1 << 1))
     {
         Game_FlashlightToggle();
@@ -238,7 +243,7 @@ void SysState_Gameplay_Update(void) // 0x80038BD4
     {
         SysWork_StateSetNext(g_MapEventSysState);
     }
-    else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.pause)
+    else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.pause)
     {
         SysWork_StateSetNext(SysState_GamePaused);
     }
@@ -246,16 +251,16 @@ void SysState_Gameplay_Update(void) // 0x80038BD4
     {
         return;
     }
-    else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.item)
+    else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.item)
     {
         SysWork_StateSetNext(SysState_StatusMenu);
     }
-    else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.map)
+    else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.map)
     {
         SysWork_StateSetNext(SysState_MapScreen);
         g_SysWork.isMgsStringSet = false;
     }
-    else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.option)
+    else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.option)
     {
         SysWork_StateSetNext(SysState_OptionsMenu);
     }
@@ -280,10 +285,10 @@ void SysState_GamePaused_Update(void) // 0x800391E8
     if (!((D_800A9A68 >> 11) & (1 << 0)))
     {
 #if VERSION_REGION_IS(NTSCJ)
-        Gfx_StringSetPosition(SCREEN_POSITION_X(41.0f), SCREEN_POSITION_Y(43.5f));
+        Gfx_StringPositionSet(131, 104);
         Gfx_StringDraw("\x07PAUSE", DEFAULT_MAP_MESSAGE_LENGTH);
 #else
-        Gfx_StringSetPosition(SCREEN_POSITION_X(39.25f), SCREEN_POSITION_Y(43.5f));
+        Gfx_StringPositionSet(125, 104);
         Gfx_StringDraw("\x07PAUSED", DEFAULT_MAP_MESSAGE_LENGTH);
 #endif
     }
@@ -299,14 +304,14 @@ void SysState_GamePaused_Update(void) // 0x800391E8
 
     // Debug button combo to bring up save screen from pause screen.
     // DPad-Left + L2 + L1 + LS-Left + RS-Left + L3
-    if ((g_Controller0->heldBtnFlags == (ControllerFlag_L3          |
-                                         ControllerFlag_DpadLeft    |
-                                         ControllerFlag_L2          |
-                                         ControllerFlag_L1          |
-                                         ControllerFlag_LStickLeft2 |
-                                         ControllerFlag_RStickLeft  |
-                                         ControllerFlag_LStickLeft)) &&
-        (g_Controller0->clickedBtnFlags & ControllerFlag_L3))
+    if ((g_Controller0->buttonFlags.held == (ControllerFlag_L3               |
+                                             ControllerFlag_DpadLeft         |
+                                             ControllerFlag_L2               |
+                                             ControllerFlag_L1               |
+                                             ControllerFlag_LStickLowLeft    |
+                                             ControllerFlag_RStickLowLeft    |
+                                             ControllerFlag_LStickHighLeft)) &&
+        (g_Controller0->buttonFlags.clicked & ControllerFlag_L3))
     {
         D_800A9A68 = 0;
         SD_Call(4);
@@ -315,7 +320,7 @@ void SysState_GamePaused_Update(void) // 0x800391E8
         return;
     }
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.pause)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.pause)
     {
         D_800A9A68 = 0;
 
@@ -482,7 +487,7 @@ void SysState_MapScreen_Update(void) // 0x800396D4
 {
     if (!HAS_PAPER_MAP(g_SavegamePtr->paperMapIdx))
     {
-        if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.map ||
+        if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.map ||
             Gfx_MapMsg_Draw(MapMsgIdx_NoMap) > MapMsgState_Idle)
         {
             SysWork_StateSetNext(SysState_Gameplay);
@@ -492,7 +497,7 @@ void SysState_MapScreen_Update(void) // 0x800396D4
              ((g_SysWork.field_2388.field_1C[0].effectsInfo.field_0.s_field_0.field_0 & (1 << 0)) ||
               (g_SysWork.field_2388.field_1C[1].effectsInfo.field_0.s_field_0.field_0 & (1 << 0))))
     {
-        if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.map ||
+        if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.map ||
             Gfx_MapMsg_Draw(MapMsgIdx_TooDarkForMap) > MapMsgState_Idle)
         {
             SysWork_StateSetNext(SysState_Gameplay);
@@ -613,7 +618,7 @@ void SysState_LoadArea_Update(void) // 0x80039C40
     s_MapPoint2d* mapPoint;
 
     g_SysWork.unused_229C         = 0;
-    g_SysWork.loadingScreenIdx    = D_800BCDB0.loadingScreenId;
+    g_SysWork.loadingScreenIdx    = g_MapPoint.loadingScreenId;
     g_SysWork.sfxPairIdx          = g_MapEventData->sfxPairIdx_8_19;
     g_SysWork.areaTransitionFlags = g_MapEventData->transitionFlags;
 
@@ -621,17 +626,17 @@ void SysState_LoadArea_Update(void) // 0x80039C40
 
     if (g_SysWork.sfxPairIdx == SfxPairIdx_7)
     {
-        D_800BCDD4          = 0;
-        g_SysWork.sysFlags |= SysFlag_LoadActive;
+        g_MapAreaLoadCounter = 0;
+        g_SysWork.sysFlags  |= SysFlag_LoadActive;
     }
 
-    D_800BCDB0 = g_MapOverlayHdr.mapPoints[g_MapEventData->eventParam];
-    if (D_800BCDB0.triggerParam1 == 1)
+    g_MapPoint = g_MapOverlayHdr.mapPoints[g_MapEventData->eventParam];
+    if (g_MapPoint.triggerParam1 == 1)
     {
         mapPoint              = &g_MapOverlayHdr.mapPoints[g_MapEventData->mapPointIdx];
         offsetZ               = g_SysWork.playerWork.player.position.vz - mapPoint->positionZ;
-        D_800BCDB0.positionX += g_SysWork.playerWork.player.position.vx - mapPoint->positionX;
-        D_800BCDB0.positionZ += offsetZ;
+        g_MapPoint.positionX += g_SysWork.playerWork.player.position.vx - mapPoint->positionX;
+        g_MapPoint.positionZ += offsetZ;
     }
 
     if (g_SysWork.sysState == SysState_LoadOverlay)
@@ -643,7 +648,7 @@ void SysState_LoadArea_Update(void) // 0x80039C40
     else
     {
         g_SysWork.processFlags = ProcessFlag_RoomTransition;
-        Bgm_TrackChange(g_MapEventData->mapIdx);
+        Bgm_SongChange(g_MapEventData->mapIdx);
 
         if (g_MapOverlayHdr.mapPoints[g_MapEventData->eventParam].field_4_5 != 0)
         {
@@ -669,7 +674,7 @@ void SysState_LoadArea_Update(void) // 0x80039C40
 
 void AreaLoad_UpdatePlayerPosition(void) // 0x80039F30
 {
-    Chara_PositionSet(&D_800BCDB0);
+    Chara_PositionSet(&g_MapPoint);
 }
 
 void AreaLoad_TransitionSound(void) // 0x80039F54
@@ -949,12 +954,12 @@ void SysState_GameOver_Update(void) // 0x8003A52C
             SysWork_StateStepIncrement(0);
 
         case 3:
-            Gfx_StringSetPosition(SCREEN_POSITION_X(32.5f), SCREEN_POSITION_Y(43.5f));
+            Gfx_StringPositionSet(104, 104);
             Gfx_StringDraw("\aGAME_OVER", DEFAULT_MAP_MESSAGE_LENGTH);
             g_SysWork.sysStateStepData[0]++;
 
-            if ((g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
-                                                   g_GameWorkPtr->config.controllerConfig.cancel)) ||
+            if ((g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
+                                                       g_GameWorkPtr->config.controllerConfig.cancel)) ||
                 g_SysWork.sysStateStepData[0] > SECONDS_60_FPS(4))
             {
                 SysWork_StateStepIncrement(0);
@@ -962,7 +967,7 @@ void SysState_GameOver_Update(void) // 0x8003A52C
             break;
 
         case 4:
-            Gfx_StringSetPosition(SCREEN_POSITION_X(32.5f), SCREEN_POSITION_Y(43.5f));
+            Gfx_StringPositionSet(104, 104);
             Gfx_StringDraw("\aGAME_OVER", DEFAULT_MAP_MESSAGE_LENGTH);
             Event_ScreenFadeCmd(ScreenFadeCmd_Auto, true, 0, Q12(2.0f), false);
             break;
@@ -990,7 +995,7 @@ void SysState_GameOver_Update(void) // 0x8003A52C
             g_SysWork.sysStateStepData[0]++;
             Screen_BackgroundImgDraw(&g_DeathTipImg);
 
-            if (!(g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (!(g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                     g_GameWorkPtr->config.controllerConfig.cancel)))
             {
                 if (g_SysWork.sysStateStepData[0] <= SECONDS_60_FPS(8))

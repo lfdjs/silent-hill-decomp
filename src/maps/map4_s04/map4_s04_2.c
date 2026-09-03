@@ -214,7 +214,7 @@ void func_800D1910(void) // 0x800D1910
         GsOUT_PACKET_P = (PACKET*)scratch->stp_8;
     }
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip &&
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 14)
     {
         SysWork_StateStepSet(0, 14);
@@ -360,7 +360,7 @@ void func_800D1910(void) // 0x800D1910
             Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "LISA", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -371,7 +371,7 @@ void func_800D23E4(void) // 0x800D23E4
     VECTOR3  lightIntPos;
     SVECTOR3 unused;
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 22)
     {
         SysWork_StateStepSet(0, 26);
@@ -582,7 +582,7 @@ void func_800D23E4(void) // 0x800D23E4
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, FS_BUFFER_15);
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "LISA", g_Cutscene_Timer, FS_BUFFER_15);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_15));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_15));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 

@@ -101,7 +101,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
         case MenuState_Main:
             if (playInGameDemo)
             {
-                GameBoot_WorldStartup();
+                GameBoot_InGameStartup();
 
                 if (g_GameWork.gameStateSteps[0] == 1 && g_SysWork.gameStateStepCounter == 0)
                 {
@@ -146,7 +146,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
 
             g_MainMenu_VisibleEntryFlags |= g_MainMenu_VisibleEntryFlags << MainMenuEntry_Count;
 
-            if (g_Controller0->pulsedBtnFlags & (ControllerFlag_LStickUp | ControllerFlag_LStickDown))
+            if (g_Controller0->buttonFlags.pulsed & (ControllerFlag_LStickHighUp | ControllerFlag_LStickHighDown))
             {
                 SD_Call(Sfx_MenuMove);
                 g_GameWork.gameState = GameState_MainMenu;
@@ -158,13 +158,13 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
                 }
             }
 
-            if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickUp)
+            if (g_Controller0->buttonFlags.pulsed & ControllerFlag_LStickHighUp)
             {
                 g_MainMenu_SelectedEntry += MainMenuEntry_Count;
                 while (!(g_MainMenu_VisibleEntryFlags & (1 << --g_MainMenu_SelectedEntry)));
             }
 
-            if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickDown)
+            if (g_Controller0->buttonFlags.pulsed & ControllerFlag_LStickHighDown)
             {
                 while (!(g_MainMenu_VisibleEntryFlags & (1 << ++g_MainMenu_SelectedEntry)));
             }
@@ -172,7 +172,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
             // Wrap selection.
             g_MainMenu_SelectedEntry %= MainMenuEntry_Count;
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
             {
                 g_GameWork.gameState = GameState_MainMenu;
 
@@ -206,7 +206,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
                             GameFs_SaveLoadBinLoad();
                         }
 
-                        GameBoot_PlayerInit();
+                        GameBoot_WorldInit();
                         g_SysWork.processFlags = ProcessFlag_Continue;
                         GameBoot_MapLoad(g_SavegamePtr->mapIdx);
                         break;
@@ -237,7 +237,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
         case MenuState_DifficultySelector:
             if (playInGameDemo)
             {
-                GameBoot_WorldStartup();
+                GameBoot_InGameStartup();
 
                 if (g_GameWork.gameStateSteps[0] == 1 && g_SysWork.gameStateStepCounter == 0)
                 {
@@ -250,8 +250,8 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
                 }
             }
 
-            if (g_Controller0->pulsedBtnFlags & (ControllerFlag_LStickUp | ControllerFlag_LStickDown) ||
-                g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (g_Controller0->buttonFlags.pulsed & (ControllerFlag_LStickHighUp | ControllerFlag_LStickHighDown) ||
+                g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                  g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 g_GameWork.gameState = GameState_MainMenu;
@@ -264,7 +264,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
             }
 
             // Scroll game difficulty options.
-            if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickUp)
+            if (g_Controller0->buttonFlags.pulsed & ControllerFlag_LStickHighUp)
             {
                 prevGameDifficultyIdx = 2;
                 if (newGameSelectedDifficultyIdx > 0)
@@ -273,7 +273,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
                 }
                 newGameSelectedDifficultyIdx = prevGameDifficultyIdx;
             }
-            if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickDown)
+            if (g_Controller0->buttonFlags.pulsed & ControllerFlag_LStickHighDown)
             {
                 nextGameDifficultyIdx = 0;
                 if (newGameSelectedDifficultyIdx < 2)
@@ -284,16 +284,16 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
             }
 
             // Play scroll sound.
-            if (g_Controller0->pulsedBtnFlags & (ControllerFlag_LStickUp | ControllerFlag_LStickDown))
+            if (g_Controller0->buttonFlags.pulsed & (ControllerFlag_LStickHighUp | ControllerFlag_LStickHighDown))
             {
                 SD_Call(Sfx_MenuMove);
             }
 
             // Select game difficulty.
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
             {
                 GameBoot_SavegameInitialize(0, newGameSelectedDifficultyIdx - 1);
-                GameBoot_PlayerInit();
+                GameBoot_WorldInit();
 
                 g_SysWork.processFlags = ProcessFlag_NewGame;
 
@@ -305,7 +305,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
                 g_MainMenuState     = 4;
             }
             // Cancel.
-            else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+            else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
             {
                 SD_Call(Sfx_MenuCancel);
                 g_MainMenuState = 1;
@@ -336,7 +336,7 @@ void GameState_MainMenu_Update(void) // 0x8003AB28
             break;
     }
 
-    if (g_Controller0->heldBtnFlags != 0)
+    if (g_Controller0->buttonFlags.held != 0)
     {
         g_SysWork.gameStateStepCounter = 0;
     }
@@ -427,8 +427,8 @@ static void MainMenu_MainTextDraw(void) // 0x8003B568
             continue;
         }
 
-        Gfx_StringSetPosition(COLUMN_POS_X - STR_OFFSETS_X[i], COLUMN_POS_Y + (i * STR_OFFSET_Y));
-        Gfx_StringSetColor(StringColorId_White);
+        Gfx_StringPositionSet(COLUMN_POS_X - STR_OFFSETS_X[i], COLUMN_POS_Y + (i * STR_OFFSET_Y));
+        Gfx_StringColorSet(StringColorId_White);
 
         if (i == g_MainMenu_SelectedEntry)
         {
@@ -469,8 +469,8 @@ static void MainMenu_DifficultyTextDraw(s32 idx) // 0x8003B678
     // Draw selection strings.
     for (i = 0; i < DIFFICULTY_MENU_SELECTION_COUNT; i++)
     {
-        Gfx_StringSetPosition(COLUMN_POS_X - STR_OFFSETS_X[i], COLUMN_POS_Y + (i * STR_OFFSET_Y));
-        Gfx_StringSetColor(StringColorId_White);
+        Gfx_StringPositionSet(COLUMN_POS_X - STR_OFFSETS_X[i], COLUMN_POS_Y + (i * STR_OFFSET_Y));
+        Gfx_StringColorSet(StringColorId_White);
 
         if (i == idx)
         {

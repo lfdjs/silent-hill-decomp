@@ -126,7 +126,7 @@ void func_800CF0B8(void) // 0x800CF0B8
     Savegame_EventFlagClear(EventFlag_412);
 
     hasSkippedEarly = false;
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] <= 19)
     {
         // Sets flag to `true` if player skipped before step 19.
@@ -569,7 +569,7 @@ void func_800CFC34(void) // 0x800CFC34
     {
         // TODO: Remove null chars from "HERO" once later rodata is added.
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO\0\0\0\0", g_Cutscene_Timer, FS_BUFFER_13);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_13));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_13));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -591,7 +591,7 @@ void func_800D0500(void) // 0x800D0500
     {
         case 0:
             D_800D3CA0 = 0;
-            Bgm_CrossfadeToTrack(BgmTrackIdx_41);
+            Bgm_CrossfadeToTrack(BgmCmd_Track41);
             break;
 
         case 1:
@@ -1758,7 +1758,7 @@ void func_800D32D0(void) // 0x800D32D0
             break;
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_5);
+            Bgm_CrossfadeToTrack(BgmCmd_Track5);
             break;
 
         case 2:

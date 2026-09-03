@@ -50,7 +50,7 @@ void GameState_KonamiLogo_Update(void) // 0x800C95AC
                 break;
 
             case KonamiLogoStateStep_LogoDelay:
-                if (g_Controller0->heldBtnFlags != 0 || g_SysWork.gameStateCounter > SECONDS_60_FPS(3))
+                if (g_Controller0->buttonFlags.held != 0 || g_SysWork.gameStateCounter > SECONDS_60_FPS(3))
                 {
                     ScreenFade_Start(false, false, false);
                     g_ScreenFadeTimestep         = Q12(0.2f);
@@ -201,7 +201,7 @@ void GameState_KcetLogo_Update(void) // 0x800C99A4
 
                     // Reset drive & sound driver
                     CdReset(1);
-                    sd_work_init();
+                    SD_InitStruct();
 #endif
 
                     while (g_GameWork.gameStateSteps[0] < KcetLogoStateStep_NoMemCard)
@@ -288,7 +288,7 @@ void GameState_KcetLogo_Update(void) // 0x800C99A4
                 break;
 
             case KcetLogoStateStep_LogoDelay:
-                if (g_Controller0->heldBtnFlags != 0 || g_SysWork.gameStateCounter > SECONDS_60_FPS(3))
+                if (g_Controller0->buttonFlags.held != 0 || g_SysWork.gameStateCounter > SECONDS_60_FPS(3))
                 {
                     ScreenFade_Start(false, false, false);
                     g_ScreenFadeTimestep = Q12(0.2f);

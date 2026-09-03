@@ -2,6 +2,7 @@
 
 #include "bodyprog/bodyprog.h"
 #include "bodyprog/dms.h"
+#include "bodyprog/events/bgm_utils.h"
 #include "bodyprog/gfx/map_effects.h"
 #include "bodyprog/item_screens.h"
 #include "bodyprog/math/math.h"
@@ -51,35 +52,35 @@ void func_800E0B5C(s32 arg0) // 0x800E0B5C
 
 void func_800E0B90(void) // 0x800E0B90
 {
-    s32 bgmIdx; // `e_BgmTrackIdx`
+    s32 bgmIdx; // `e_BgmCmd`
 
     if (g_SavegamePtr->mapRoomIdx == 3)
     {
-        bgmIdx = BgmTrackIdx_15;
+        bgmIdx = BgmCmd_Track15;
     }
     else if (Savegame_EventFlagGet(EventFlag_481))
     {
         if (!Savegame_EventFlagGet(EventFlag_574))
         {
             Savegame_EventFlagSet(EventFlag_574);
-            bgmIdx = BgmTrackIdx_1;
+            bgmIdx = BgmCmd_UpdateTrack;
         }
         else
         {
-            bgmIdx = BgmTrackIdx_22;
+            bgmIdx = BgmCmd_Track22;
         }
     }
     else
     {
-        bgmIdx = BgmTrackIdx_14;
+        bgmIdx = BgmCmd_Track14;
     }
 
-    Bgm_TrackChange(bgmIdx);
+    Bgm_SongChange(bgmIdx);
 }
 
 void func_800E0C10(void) // 0x800E0C10
 {
-    Bgm_TrackChange(Savegame_EventFlagGet(EventFlag_M5S03_KaufmannHasMotorcycleVial) ? 40 : 35);
+    Bgm_SongChange(Savegame_EventFlagGet(EventFlag_M5S03_KaufmannHasMotorcycleVial) ? 40 : 35);
 }
 
 #include "maps/shared/sharedFunc_800D0110_7_s00.h" // 0x800E0C50
@@ -911,7 +912,7 @@ void Map_CutsceneObjectsUpdate(void) // 0x800E2E90
             Dms_CharacterTransformGet(&g_WorldObject_Baby.position, &g_WorldObject_Baby.rotation, "BABY", g_Cutscene_Timer, D_800ED230[D_800F4806]);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, D_800ED230[D_800F4806]));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, D_800ED230[D_800F4806]));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -935,7 +936,7 @@ void func_800E3390(void) // 0x800E3390
 {
     s32 i;
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         D_800F4805 > 0 && D_800F4805 < 4)
     {
         D_800F4805 = 5;
@@ -1040,7 +1041,7 @@ void func_800E3390(void) // 0x800E3390
             }
 
         case 6:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_40);
+            Bgm_CrossfadeToTrack(BgmCmd_Track40);
 
             if (g_SysWork.sysStateSteps[0] != 0)
             {
@@ -1823,7 +1824,7 @@ void func_800E514C(void) // 0x800E514C
             SysWork_StateStepIncrement(0);
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_29);
+            Bgm_CrossfadeToTrack(BgmCmd_Track29);
             break;
 
         case 2:
@@ -1937,7 +1938,7 @@ void func_800E514C(void) // 0x800E514C
                 Savegame_EventFlagClear(EventFlag_576);
             }
 
-            Bgm_PlayNewTrack(BgmTrackIdx_40);
+            Bgm_PlayNewSong(BgmCmd_Track40);
             SysWork_StateStepIncrement(0);
 
         case 22:
@@ -2907,7 +2908,7 @@ void func_800E787C(void) // 0x800E787C
     switch (g_SysWork.sysStateSteps[0])
     {
         case 0:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_35);
+            Bgm_CrossfadeToTrack(BgmCmd_Track35);
             break;
 
         case 1:
@@ -3301,7 +3302,7 @@ void func_800E86BC(void) // 0x800E86BC
     switch (g_SysWork.sysStateSteps[0])
     {
         case 0:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_35);
+            Bgm_CrossfadeToTrack(BgmCmd_Track35);
             break;
 
         case 1:
@@ -3962,7 +3963,7 @@ void func_800E9C28(void) // 0x800E9C28
             break;
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_5);
+            Bgm_CrossfadeToTrack(BgmCmd_Track5);
             break;
 
         case 2:

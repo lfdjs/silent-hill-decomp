@@ -3,7 +3,7 @@
 
 #include "game.h"
 
-#include "bodyprog/events/bgm.h"
+#include "bodyprog/events/bgm_update.h"
 #include "bodyprog/game_boot/game_boot.h"
 #include "bodyprog/screen/background_draw.h"
 #include "bodyprog/screen/screen_draw.h"
@@ -227,7 +227,7 @@ extern CVECTOR sharedData_800E325C_0_s00;
 
 extern q19_12 sharedData_800E2370_0_s01[2]; // Air Screamer ground collision heights?
 
-// Each of these holds 8 bytes, passed to `Bgm_Update` which loops through each byte.
+// Each of these holds 8 bytes, passed to `Bgm_LayersUpdate` which loops through each byte.
 // TODO: Should use `s_BgmLayerLimits`?
 extern u8 sharedData_800CFB14_0_s02[8];
 extern u8 sharedData_800CFB1C_0_s02[8];

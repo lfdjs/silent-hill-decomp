@@ -99,7 +99,7 @@ void func_800EB6B0(void) // 0x800EB6B0
     var_v1  = Q12_MULT_PRECISE(newPosComp, temp_v0);
 
     D_800EFC74.limits[4] = var_v1 / Q12(0.5f);
-    Bgm_Update(bgmFlags, Q12(0.2f), &D_800EFC74);
+    Bgm_LayersUpdate(bgmFlags, Q12(0.2f), &D_800EFC74);
 }
 
 void GameBoot_LoadScreen_StageString(void) {}
@@ -194,22 +194,22 @@ void func_800EBA40(void) // 0x800EBA40
         case 4:
             Screen_BackgroundImgDraw(&g_ItemInspectionImg);
 
-            D_800F0354 += (g_Controller0->sticks_24.sticks_0.leftX * 16384) / 75;
+            D_800F0354 += (g_Controller0->normalizedSticks.sticks_0.leftX * 16384) / 75;
             D_800F0354  = CLAMP_RANGE(D_800F0354, Q12(-160.0f), Q12(160.0f));
 
-            D_800F0358 += (g_Controller0->sticks_24.sticks_0.leftY * 16384) / 75;
+            D_800F0358 += (g_Controller0->normalizedSticks.sticks_0.leftY * 16384) / 75;
             D_800F0358  = CLAMP_RANGE(D_800F0358, Q12(-120.0f), Q12(120.0f));
 
             Game_TimerUpdate();
             Gfx_CursorDraw((s16)(FP_FROM(D_800F0354, Q12_SHIFT) + 8), FP_FROM(D_800F0358, Q12_SHIFT) + 8, 8, 8, 0, 64, 32, 32, 128, 192, 0, 12);
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
             {
                 SysWork_StateStepSet(0, 7);
                 break;
             }
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
             {
                 for (i = 0; i < ARRAY_SIZE(D_800F0158); i++)
                 {
@@ -225,7 +225,7 @@ void func_800EBA40(void) // 0x800EBA40
                         continue;
                     }
 
-                    Sd_PlaySfx(Sfx_Unk1586, Q8(0.0f), Q8(0.5f));
+                    Sd_SfxPlay(Sfx_Unk1586, Q8(0.0f), Q8(0.5f));
 
                     if (i < 11)
                     {
@@ -269,7 +269,7 @@ void func_800EBA40(void) // 0x800EBA40
             break;
 
         case 6:
-            Sd_PlaySfx(Sfx_Unk1587, Q8(0.0f), Q8(0.5f));
+            Sd_SfxPlay(Sfx_Unk1587, Q8(0.0f), Q8(0.5f));
             SysWork_StateStepIncrement(0);
 
         case 7:
@@ -282,7 +282,7 @@ void func_800EBA40(void) // 0x800EBA40
             Player_ControlUnfreeze(false);
             SysWork_StateSetNext(SysState_Gameplay);
             Event_ScreenFadeCmd(ScreenFadeCmd_Start, false, 0, Q12(0.0f), false);
-            func_80037154();
+            Game_RadioNoiseReset();
             break;
     }
 }
@@ -359,7 +359,7 @@ void func_800EBF70(void) // 0x800EBF70
             g_SysWork.bgmStatusFlags |= BgmStatusFlag_Pause;
 
             temp_v0 = func_800CD20C();
-            if (!(g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel))
+            if (!(g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 if (temp != temp_v0)
                 {
@@ -367,7 +367,7 @@ void func_800EBF70(void) // 0x800EBF70
                 }
 
                 Savegame_EventFlagSet(EventFlag_371);
-                Sd_PlaySfx(Sfx_Unk1588, Q8(0.0f), Q8(0.5f));
+                Sd_SfxPlay(Sfx_Unk1588, Q8(0.0f), Q8(0.5f));
             }
 
             SysWork_StateStepIncrement(0);
@@ -389,7 +389,7 @@ void func_800EBF70(void) // 0x800EBF70
             vcReturnPreAutoCamWork(true);
             Player_ControlUnfreeze(false);
             SysWork_StateSetNext(SysState_Gameplay);
-            func_80037154();
+            Game_RadioNoiseReset();
             break;
     }
 }
@@ -663,7 +663,7 @@ void func_800EC42C(void) // 0x800EC42C
 
         g_SysWork.playerWork.player.position.vx -= Q12(20.0f);
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_13));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_13));
 
         g_Cutscene_CameraPositionTarget.vx -= Q12(20.0f);
         g_Cutscene_CameraLookAtTarget.vx -= Q12(20.0f);
@@ -680,15 +680,15 @@ void Map_WorldObjectsInit(void) // 0x800ECB58
 
     if (g_SavegamePtr->gameDifficulty == GameDifficulty_Easy)
     {
-        g_SysWork.npcFlagsId = 3;
+        g_SysWork.npcFlagId = 3;
     }
     else if (g_SavegamePtr->gameDifficulty == GameDifficulty_Normal)
     {
-        g_SysWork.npcFlagsId = 4;
+        g_SysWork.npcFlagId = 4;
     }
     else
     {
-        g_SysWork.npcFlagsId = 5;
+        g_SysWork.npcFlagId = 5;
     }
 
     WorldObject_ModelNameSet(&g_CommonWorldObjects[0], g_CommonWorldObjectNames[2]);

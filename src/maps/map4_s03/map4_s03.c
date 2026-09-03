@@ -100,7 +100,7 @@ void func_800D6774(void) // 0x800D6774
     #define playerChara g_SysWork.playerWork.player
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 11)
     {
         SysWork_StateStepSet(0, 12);
@@ -292,7 +292,7 @@ void func_800D6F24(void) // 0x800D6F24
     #define playerChara g_SysWork.playerWork.player
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 9)
     {
         SysWork_StateStepSet(0, 9);
@@ -1417,7 +1417,7 @@ void func_800D8FC0(void) // 0x800D8FC0
     scratchData = PSX_SCRATCH_ADDR(0);
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 5)
     {
         SysWork_StateStepSet(0, 5);
@@ -1538,7 +1538,7 @@ void func_800D8FC0(void) // 0x800D8FC0
 void func_800D960C(void) // 0x800D960C
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 4)
     {
         SysWork_StateStepReset();
@@ -1691,7 +1691,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D9BB0
                 D_800E05AE += Q12(1.0f);
             }
 
-            Collision_FlagBitsClear(CollisionTriggerFlag_1);
+            Collision_FlagBitsClear(CollisionTriggerFlag_Objects);
             D_800E05A8 += g_DeltaTime;
 
             if (D_800E05AC) {} // @hack
@@ -1742,7 +1742,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D9BB0
         }
         else
         {
-            Collision_FlagBitsClear(CollisionTriggerFlag_1);
+            Collision_FlagBitsClear(CollisionTriggerFlag_Objects);
             WorldObjects_Add(&g_WorldObject_Mal6[1], &g_WorldObject_UnkPos, &g_WorldObject_UnkRot);
         }
     }

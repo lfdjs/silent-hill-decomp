@@ -700,7 +700,7 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
 
                 for (; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
                 {
-                    *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->field_C;
+                    *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->faceIdxs;
 
                     scratchData->field_380.s_0.field_18 = scratchData->field_18C[scratchData->field_380.s_0.field_10];
                     if (scratchData->field_380.s_0.field_18 < scratchData->field_18C[scratchData->field_380.s_0.field_11])
@@ -838,15 +838,15 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
                         gte_dpcl();
                         gte_strgb(&poly3->r3);
 
-                        *(s32*)&poly3->u0 = *(s32*)&prim->field_0;
-                        *(s32*)&poly3->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-                        *(u16*)&poly3->u2 = prim->field_8;
-                        *(u16*)&poly3->u3 = prim->field_A;
+                        *(s32*)&poly3->u0 = *(s32*)&prim->u0;
+                        *(s32*)&poly3->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+                        *(u16*)&poly3->u2 = *(u16*)&prim->u2;
+                        *(u16*)&poly3->u3 = *(u16*)&prim->u3;
 
                         setlen(poly3, 12);
                         setlen(poly1, 8);
 
-                        if (prim->field_6.flags & (1 << 15))
+                        if (prim->bits1.flags & (1 << 15))
                         {
                             packet1 = poly1 + 1;
 
@@ -886,7 +886,7 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
 
             for (; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
             {
-                *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->field_C;
+                *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->faceIdxs;
 
                 scratchData->field_380.s_0.field_18 = scratchData->field_18C[scratchData->field_380.s_0.field_10];
 
@@ -981,10 +981,10 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
                     gte_dpcl();
                     gte_strgb(&poly3->r3);
 
-                    *(s32*)&poly3->u0 = *(s32*)&prim->field_0;
-                    *(s32*)&poly3->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-                    *(u16*)&poly3->u2 = prim->field_8;
-                    *(u16*)&poly3->u3 = prim->field_A;
+                    *(s32*)&poly3->u0 = *(s32*)&prim->u0;
+                    *(s32*)&poly3->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+                    *(u16*)&poly3->u2 = *(u16*)&prim->u2;
+                    *(u16*)&poly3->u3 = *(u16*)&prim->u3;
 
                     setlen(poly3, 12);
 
@@ -1009,7 +1009,7 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
 
         for (; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
         {
-            *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->field_C;
+            *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->faceIdxs;
 
             scratchData->field_380.s_0.field_18 = scratchData->field_18C[scratchData->field_380.s_0.field_10];
 
@@ -1070,16 +1070,16 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
             temp_t0_4  = temp_a3_4 * 2;
             temp_a2_6  = temp_a2_5;
 
-            if ((s16)temp_a2_5 + temp_a3_4 < temp_t0_4 || (s16)temp_a1_4 + temp_a3_4 < temp_t0_4 ||
-                (s16)temp_a0_9 + temp_a3_4 < temp_t0_4 || (s16)temp_v1_21 + temp_a3_4 < temp_t0_4)
+            if (((s16)temp_a2_5 + temp_a3_4) < temp_t0_4 || ((s16)temp_a1_4 + temp_a3_4) < temp_t0_4 ||
+                ((s16)temp_a0_9 + temp_a3_4) < temp_t0_4 || ((s16)temp_v1_21 + temp_a3_4) < temp_t0_4)
             {
-                *(s32*)&poly3->x0  = temp_a2_6;
+                *(s32*)&poly3->x0 = temp_a2_6;
                 *(s32*)&poly2->x0 = temp_a2_6;
-                *(s32*)&poly3->x1  = temp_a1_4;
+                *(s32*)&poly3->x1 = temp_a1_4;
                 *(s32*)&poly2->x1 = temp_a1_4;
-                *(s32*)&poly3->x2  = temp_a0_9;
+                *(s32*)&poly3->x2 = temp_a0_9;
                 *(s32*)&poly2->x2 = temp_a0_9;
-                *(s32*)&poly3->x3  = temp_v1_21;
+                *(s32*)&poly3->x3 = temp_v1_21;
                 *(s32*)&poly2->x3 = temp_v1_21;
 
                 temp4    = Q12(1.0f) - scratchData->field_252[scratchData->field_380.s_0.field_10] * 16;
@@ -1146,15 +1146,15 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
                 gte_dpcs();
                 gte_strgb(&poly3->r3);
 
-                *(s32*)&poly3->u0 = *(s32*)&prim->field_0;
-                *(s32*)&poly3->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-                *(u16*)&poly3->u2 = prim->field_8;
-                *(u16*)&poly3->u3 = prim->field_A;
+                *(s32*)&poly3->u0 = *(s32*)&prim->u0;
+                *(s32*)&poly3->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+                *(u16*)&poly3->u2 = *(u16*)&prim->u2;
+                *(u16*)&poly3->u3 = *(u16*)&prim->u3;
 
                 setlen(poly3, 12);
                 setlen(poly2, 8);
 
-                if (prim->field_6.flags & (1 << 15))
+                if (prim->bits1.flags & (1 << 15))
                 {
                     packet0 = poly2 + 1;
 
@@ -1184,7 +1184,7 @@ void Gfx_MeshDraw(s_MeshHeader* meshHdr, s_GteScratchData* scratchData, GsOT_TAG
             }
         }
 
-        GsOUT_PACKET_P = poly2; // @bug? Should be `poly_gt4`
+        GsOUT_PACKET_P = poly2; // @bug? Should be `poly_gt4`.
         return;
     }
     else
@@ -1198,7 +1198,7 @@ __block1530:
 
     for (; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
     {
-        *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->field_C;
+        *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->faceIdxs;
 
         scratchData->field_380.s_0.field_18 = scratchData->field_18C[scratchData->field_380.s_0.field_10];
 
@@ -1259,8 +1259,8 @@ __block1530:
         temp_t0_3  = temp_a3_3 * 2;
         temp3      = temp_a2_4;
 
-        if ((s16)temp_a2_4 + temp_a3_3 < temp_t0_3 || (s16)temp_a1_3 + temp_a3_3 < temp_t0_3 ||
-            (s16)temp_a0_7 + temp_a3_3 < temp_t0_3 || (s16)temp_v1_16 + temp_a3_3 < temp_t0_3)
+        if (((s16)temp_a2_4 + temp_a3_3) < temp_t0_3 || ((s16)temp_a1_3 + temp_a3_3) < temp_t0_3 ||
+            ((s16)temp_a0_7 + temp_a3_3) < temp_t0_3 || ((s16)temp_v1_16 + temp_a3_3) < temp_t0_3)
         {
             *(s32*)&poly0->x0 = temp3;
             *(s32*)&poly0->x1 = temp_a1_3;
@@ -1317,10 +1317,10 @@ __block1530:
                 *(s32*)&poly0->r3 = 0x3C000000;
             }
 
-            *(s32*)&poly0->u0 = *(s32*)&prim->field_0;
-            *(s32*)&poly0->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-            *(u16*)&poly0->u2 = prim->field_8;
-            *(u16*)&poly0->u3 = prim->field_A;
+            *(s32*)&poly0->u0 = *(s32*)&prim->u0;
+            *(s32*)&poly0->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+            *(u16*)&poly0->u2 = *(u16*)&prim->u2;
+            *(u16*)&poly0->u3 = *(u16*)&prim->u3;
 
             setlen(poly0, 12);
 
@@ -1339,7 +1339,7 @@ __block19CC:
 
     for (prim = meshHdr->primitives; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
     {
-        *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->field_C;
+        *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->faceIdxs;
         scratchData->field_380.s_0.field_18         = scratchData->field_18C[scratchData->field_380.s_0.field_10];
 
         if (scratchData->field_380.s_0.field_18 < scratchData->field_18C[scratchData->field_380.s_0.field_11])
@@ -1399,8 +1399,8 @@ __block19CC:
         temp_t0_5  = temp_a3_5 * 2;
         temp       = temp_a2_7;
 
-        if ((s16)temp_a2_7 + temp_a3_5 < temp_t0_5 || (s16)temp_a1_5 + temp_a3_5 < temp_t0_5 ||
-            (s16)temp_a0_13 + temp_a3_5 < temp_t0_5 || (s16)temp_v1_27 + temp_a3_5 < temp_t0_5)
+        if (((s16)temp_a2_7 + temp_a3_5) < temp_t0_5 || ((s16)temp_a1_5 + temp_a3_5) < temp_t0_5 ||
+            ((s16)temp_a0_13 + temp_a3_5) < temp_t0_5 || ((s16)temp_v1_27 + temp_a3_5) < temp_t0_5)
         {
             *(s32*)&poly4->x0 = temp;
             *(s32*)&poly4->x1 = temp_a1_5;
@@ -1409,10 +1409,10 @@ __block19CC:
 
             *(s32*)&poly4->r0 = *(s32*)&scratchData->field_380.s_0.field_8;
 
-            *(s32*)&poly4->u0 = *(s32*)&prim->field_0;
-            *(s32*)&poly4->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-            *(u16*)&poly4->u2 = prim->field_8;
-            *(u16*)&poly4->u3 = prim->field_A;
+            *(s32*)&poly4->u0 = *(s32*)&prim->u0;
+            *(s32*)&poly4->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+            *(u16*)&poly4->u2 = *(u16*)&prim->u2;
+            *(u16*)&poly4->u3 = *(u16*)&prim->u3;
 
             setlen(poly4, 9);
 
@@ -1491,7 +1491,7 @@ void func_80059E34(u32 arg0, s_MeshHeader* meshHdr, s_GteScratchData* scratchDat
 
     for (prim = meshHdr->primitives; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
     {
-        *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->field_C;
+        *(s32*)&scratchData->field_380.s_0.field_10 = *(s32*)&prim->faceIdxs;
 
         var_t2 = scratchData->field_18C[scratchData->field_380.s_0.field_10];
         var_t2 = MAX(scratchData->field_18C[scratchData->field_380.s_0.field_11], var_t2);
@@ -1539,10 +1539,10 @@ void func_80059E34(u32 arg0, s_MeshHeader* meshHdr, s_GteScratchData* scratchDat
         temp_t1 = temp_t0 * 2;
         x0 = temp;
 
-        if (scratchData->screenXy_0[scratchData->field_380.s_0.field_10].vx + temp_t0 >= temp_t1 &&
-            (s16)x1 + temp_t0 >= temp_t1 &&
-            (s16)x2 + temp_t0 >= temp_t1 &&
-            (s16)x3 + temp_t0 >= temp_t1)
+        if ((scratchData->screenXy_0[scratchData->field_380.s_0.field_10].vx + temp_t0) >= temp_t1 &&
+            ((s16)x1 + temp_t0) >= temp_t1 &&
+            ((s16)x2 + temp_t0) >= temp_t1 &&
+            ((s16)x3 + temp_t0) >= temp_t1)
         {
             continue;
         }
@@ -1553,10 +1553,10 @@ void func_80059E34(u32 arg0, s_MeshHeader* meshHdr, s_GteScratchData* scratchDat
         *(s32*)&poly->x3 = x3;
 
         *(s32*)&poly->r0 = packedColor;
-        *(s32*)&poly->u0 = *(s32*)&prim->field_0;
-        *(s32*)&poly->u1 = ((*(u32*)&prim->field_4 & 0x1FFFFF) | (var_a2 << 16)); // Maybe `field_4` is bitfield
-        *(u16*)&poly->u2 = prim->field_8;
-        *(u16*)&poly->u3 = prim->field_A;
+        *(s32*)&poly->u0 = *(s32*)&prim->u0;
+        *(s32*)&poly->u1 = ((*(u32*)&prim->u1 & 0x1FFFFF) | (var_a2 << 16)); // Maybe `field_4` is bitfield.
+        *(u16*)&poly->u2 = *(u16*)&prim->u2;
+        *(u16*)&poly->u3 = *(u16*)&prim->u3;
 
         setlen(poly, 9);
 
@@ -1655,9 +1655,9 @@ void func_8005A478(s_GteScratchData* scratchData, q19_12 alpha) // 0x8005A478
 {
     s32 geomOffsetX;
     s32 geomOffsetY;
-    s32 temp_s0;
-    s32 temp_s1;
-    s32 temp_s2;
+    s32 offsetX;
+    s32 offsetY;
+    s32 offsetZ;
     s32 temp_a0;
     s16 geomScreen;
     s32 temp_v1;
@@ -1666,39 +1666,39 @@ void func_8005A478(s_GteScratchData* scratchData, q19_12 alpha) // 0x8005A478
     s32 var_s0;
     s32 var_t1;
     s32 var_v1;
-    s32 temp_s0_neg;
-    s32 temp_s1_neg;
-    s32 temp_s2_neg;
+    s32 negOffsetX;
+    s32 negOffsetY;
+    s32 negOffsetZ;
 
     ReadGeomOffset(&geomOffsetX, &geomOffsetY);
     geomScreen = ReadGeomScreen();
     SetGeomOffset(Q8(-4.0f), Q8(-4.0f));
     SetGeomScreen(16);
 
-    temp_s0 = g_WorldEnvWork.light.field_30.vx;
-    temp_s1 = g_WorldEnvWork.light.field_30.vy;
-    temp_s2 = g_WorldEnvWork.light.field_30.vz;
+    offsetX = g_WorldEnvWork.light.field_30.vx;
+    offsetY = g_WorldEnvWork.light.field_30.vy;
+    offsetZ = g_WorldEnvWork.light.field_30.vz;
 
-    var_t1 = Math_Vector3MagCalc(temp_s0, temp_s1, temp_s2);
+    var_t1 = Math_Vector3MagCalc(offsetX, offsetY, offsetZ);
     if (var_t1 == 0)
     {
         var_t1 = 1;
     }
 
-    temp_s0_neg = -temp_s0;
-    temp_s1_neg = -temp_s1;
-    temp_s2_neg = -temp_s2;
+    negOffsetX = -offsetX;
+    negOffsetY = -offsetY;
+    negOffsetZ = -offsetZ;
 
     *(u32*)&scratchData->rotMatrix_3E4[0][0] = *(u32*)&g_WorldEnvWork.light.field_28;
     scratchData->rotMatrix_3E4[0][2]         = g_WorldEnvWork.light.field_28.vz;
 
-    scratchData->rotMatrix_3E4[1][0] = Q12(temp_s0_neg) / var_t1;
-    scratchData->rotMatrix_3E4[1][1] = Q12(temp_s1_neg) / var_t1;
-    scratchData->rotMatrix_3E4[1][2] = Q12(temp_s2_neg) / var_t1;
+    scratchData->rotMatrix_3E4[1][0] = Q12(negOffsetX) / var_t1;
+    scratchData->rotMatrix_3E4[1][1] = Q12(negOffsetY) / var_t1;
+    scratchData->rotMatrix_3E4[1][2] = Q12(negOffsetZ) / var_t1;
 
-    scratchData->rotMatrix_3E4[2][0] = temp_s0_neg;
-    scratchData->rotMatrix_3E4[2][1] = temp_s1_neg;
-    scratchData->rotMatrix_3E4[2][2] = temp_s2_neg;
+    scratchData->rotMatrix_3E4[2][0] = negOffsetX;
+    scratchData->rotMatrix_3E4[2][1] = negOffsetY;
+    scratchData->rotMatrix_3E4[2][2] = negOffsetZ;
 
     gte_SetRotMatrix(scratchData->rotMatrix_3E4);
     gte_SetVector0(&scratchData->rotMatrix_3E4[2][0]);
@@ -1710,7 +1710,8 @@ void func_8005A478(s_GteScratchData* scratchData, q19_12 alpha) // 0x8005A478
     scratchData->screenPos_3DC.vx += 1024; // TODO: Q8?
     scratchData->screenPos_3DC.vy += 1024;
 
-    var_s0  = (scratchData->screenPos_3DC.vx * scratchData->screenPos_3DC.vy) + (scratchData->screenPos_3DC.vy * (scratchData->depthP_3E0 >> 4));
+    var_s0  = (scratchData->screenPos_3DC.vx * scratchData->screenPos_3DC.vy) +
+              (scratchData->screenPos_3DC.vy * (scratchData->depthP_3E0 >> 4));
     var_s0 >>= 5;
     var_s0  -= 16;
     if (var_s0 < 0)
@@ -1780,13 +1781,13 @@ void func_8005A478(s_GteScratchData* scratchData, q19_12 alpha) // 0x8005A478
                  Q12_MULT(g_WorldEnvWork.field_24.b + ((g_WorldEnvWork.worldTintColor.b * var_a1) >> 7), alpha));
 }
 
-void func_8005A838(s_GteScratchData* scratchData, s32 scale) // 0x8005A838
+void func_8005A838(s_GteScratchData* scratchData, q19_12 scale) // 0x8005A838
 {
     SVECTOR3 color;
 
-    color.vx = Q12_MULT(g_WorldEnvWork.light.field_28.vx, scale) >> 1;
-    color.vy = Q12_MULT(g_WorldEnvWork.light.field_28.vy, scale) >> 1;
-    color.vz = Q12_MULT(g_WorldEnvWork.light.field_28.vz, scale) >> 1;
+    color.vx = Q12_MULT(g_WorldEnvWork.light.field_28.vx, scale) >> 1; // `/ 2`.
+    color.vy = Q12_MULT(g_WorldEnvWork.light.field_28.vy, scale) >> 1; // `/ 2`.
+    color.vz = Q12_MULT(g_WorldEnvWork.light.field_28.vz, scale) >> 1; // `/ 2`.
     gte_SetLightSVector(&color);
 
     SetBackColor(Q12_MULT(g_WorldEnvWork.field_24.r, scale),
@@ -1841,65 +1842,65 @@ u8 func_8005AA08(s_MeshHeader* meshHdr, s32 arg1, s_GteScratchData2* scratchData
         : "r"( r0 )                                 \
         : "memory" )
 
-    CVECTOR   sp0;
-    s_Normal* var_a3;
-    VECTOR3*  var_t0;
+    CVECTOR   color;
+    s_Normal* normals;
+    VECTOR3*  points;
 
     if (meshHdr->normalCount == 0)
     {
         return;
     }
 
-    sp0.cd = 0;
-    gte_ldrgb(&sp0);
+    color.cd = 0;
+    gte_ldrgb(&color);
 
-    var_a3 = meshHdr->normals;
-    *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&var_a3[0];
+    normals = meshHdr->normals;
+    *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&normals[0];
     scratchData->u.normal.field_3E0[0].vx = scratchData->u.normal.field_3DC.nx << 5;
     scratchData->u.normal.field_3E0[0].vy = scratchData->u.normal.field_3DC.ny << 5;
     scratchData->u.normal.field_3E0[0].vz = scratchData->u.normal.field_3DC.nz << 5;
 
-    *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&var_a3[1];
+    *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&normals[1];
     scratchData->u.normal.field_3E0[1].vx = scratchData->u.normal.field_3DC.nx << 5;
     scratchData->u.normal.field_3E0[1].vy = scratchData->u.normal.field_3DC.ny << 5;
     scratchData->u.normal.field_3E0[1].vz = scratchData->u.normal.field_3DC.nz << 5;
 
-    *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&var_a3[2];
-    var_a3 += 3;
+    *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&normals[2];
+    normals += 3;
     scratchData->u.normal.field_3E0[2].vx = scratchData->u.normal.field_3DC.nx << 5;
     scratchData->u.normal.field_3E0[2].vy = scratchData->u.normal.field_3DC.ny << 5;
     scratchData->u.normal.field_3E0[2].vz = scratchData->u.normal.field_3DC.nz << 5;
 
-    var_t0 = &scratchData->field_21C[arg1];
+    points = &scratchData->field_21C[arg1];
 
     gte_ldv3c(scratchData->u.normal.field_3E0);
     gte_nct();
 
-    while (var_a3 < &meshHdr->normals[meshHdr->normalCount])
+    while (normals < &meshHdr->normals[meshHdr->normalCount])
     {
-        *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&var_a3[0];
+        *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&normals[0];
         scratchData->u.normal.field_3E0[0].vx = scratchData->u.normal.field_3DC.nx << 5;
         scratchData->u.normal.field_3E0[0].vy = scratchData->u.normal.field_3DC.ny << 5;
         scratchData->u.normal.field_3E0[0].vz = scratchData->u.normal.field_3DC.nz << 5;
 
-        *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&var_a3[1];
+        *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&normals[1];
         scratchData->u.normal.field_3E0[1].vx = scratchData->u.normal.field_3DC.nx << 5;
         scratchData->u.normal.field_3E0[1].vy = scratchData->u.normal.field_3DC.ny << 5;
         scratchData->u.normal.field_3E0[1].vz = scratchData->u.normal.field_3DC.nz << 5;
 
-        *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&var_a3[2];
-        var_a3 += 3;
+        *(u32*)&scratchData->u.normal.field_3DC = *(u32*)&normals[2];
+        normals += 3;
         scratchData->u.normal.field_3E0[2].vx = scratchData->u.normal.field_3DC.nx << 5;
         scratchData->u.normal.field_3E0[2].vy = scratchData->u.normal.field_3DC.ny << 5;
         scratchData->u.normal.field_3E0[2].vz = scratchData->u.normal.field_3DC.nz << 5;
 
-        gte_strgb3_vec(var_t0); // Store result of previous `gte_nct` call.
-        var_t0++;
+        gte_strgb3_vec(points); // Store result of previous `gte_nct` call.
+        points++;
         gte_ldv3c(scratchData->u.normal.field_3E0);
         gte_nct();
     }
 
-    gte_strgb3(&var_t0->vx, &var_t0->vy, &var_t0->vz); // Store result from final `gte_nct`.
+    gte_strgb3(&points->vx, &points->vy, &points->vz); // Store result from final `gte_nct`.
 }
 
 void func_8005AC50(s_MeshHeader* meshHdr, s_GteScratchData2* scratchData, GsOT_TAG* ot, bool arg3) // 0x8005AC50
@@ -1936,7 +1937,7 @@ void func_8005AC50(s_MeshHeader* meshHdr, s_GteScratchData2* scratchData, GsOT_T
 
     for (prim = meshHdr->primitives, poly.packet = GsOUT_PACKET_P; prim < &meshHdr->primitives[meshHdr->primitiveCount]; prim++)
     {
-        *(s32*)&scratchData->u.s_1.field_0 = *(s32*)&prim->field_C;
+        *(s32*)&scratchData->u.s_1.field_0 = *(s32*)&prim->faceIdxs;
         *(s32*)&scratchData->u.s_1.field_4 = *(s32*)&prim->field_10;
 
         if (scratchData->u.s_1.field_3 == 0xFF)
@@ -1974,11 +1975,11 @@ void func_8005AC50(s_MeshHeader* meshHdr, s_GteScratchData2* scratchData, GsOT_T
                 *(s32*)&poly.gt3->r0 = *(s32*)&poly.gt3->r1 = *(s32*)&poly.gt3->r2 = *(s32*)&scratchData->field_3D8;
             }
 
-            poly.gt3->code = ((prim->field_6.flags >> 15) * 2) | 0x34;
+            poly.gt3->code = ((prim->bits1.flags >> 15) * 2) | 0x34;
 
-            *(s32*)&poly.gt3->u0 = *(s32*)&prim->field_0 + scratchData->u.s_1.field_8;
-            *(s32*)&poly.gt3->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-            *(u16*)&poly.gt3->u2 = prim->field_8;
+            *(s32*)&poly.gt3->u0 = *(s32*)&prim->u0 + scratchData->u.s_1.field_8;
+            *(s32*)&poly.gt3->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+            *(u16*)&poly.gt3->u2 = *(u16*)&prim->u2;
 
             setlen(poly.gt3, 9);
 
@@ -2027,15 +2028,18 @@ void func_8005AC50(s_MeshHeader* meshHdr, s_GteScratchData2* scratchData, GsOT_T
             }
             else
             {
-                *(s32*)&poly.gt4->r0 = *(s32*)&poly.gt4->r1 = *(s32*)&poly.gt4->r2 = *(s32*)&poly.gt4->r3 = *(s32*)&scratchData->field_3D8;
+                *(s32*)&poly.gt4->r0 =
+                *(s32*)&poly.gt4->r1 =
+                *(s32*)&poly.gt4->r2 =
+                *(s32*)&poly.gt4->r3 = *(s32*)&scratchData->field_3D8;
             }
 
-            poly.gt4->code = ((prim->field_6.flags >> 15) * 2) | 0x3C;
+            poly.gt4->code = ((prim->bits1.flags >> 15) * 2) | 0x3C;
 
-            *(s32*)&poly.gt4->u0 = *(s32*)&prim->field_0 + scratchData->u.s_1.field_8;
-            *(s32*)&poly.gt4->u1 = *(s32*)&prim->field_4 & 0xFFFFFF;
-            *(u16*)&poly.gt4->u2 = prim->field_8;
-            *(u16*)&poly.gt4->u3 = prim->field_A;
+            *(s32*)&poly.gt4->u0 = *(s32*)&prim->u0 + scratchData->u.s_1.field_8;
+            *(s32*)&poly.gt4->u1 = *(s32*)&prim->u1 & 0xFFFFFF;
+            *(u16*)&poly.gt4->u2 = *(u16*)&prim->u2;
+            *(u16*)&poly.gt4->u3 = *(u16*)&prim->u3;
 
             setlen(poly.gt4, 12);
 

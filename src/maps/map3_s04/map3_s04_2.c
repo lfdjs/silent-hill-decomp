@@ -205,7 +205,7 @@ void func_800D2668(void) // 0x800D2668
     SVECTOR3* tmpSvec;
 
     // Skip.
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip &&
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 23)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -425,7 +425,7 @@ void func_800D2668(void) // 0x800D2668
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, FS_BUFFER_11);
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "LISA", g_Cutscene_Timer, FS_BUFFER_11);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -476,8 +476,8 @@ void Map_WorldObjectsUpdate(void) // 0x800D3DA4
     q19_12 drZ;
     MAP_CHUNK_CHECK_VARIABLE_DECL();
 
-    cellZ0 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_CELL_SIZE);
-    cellX0 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellZ0 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_SIZE);
+    cellX0 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_SIZE);
 
     if (g_SysWork.playerWork.player.position.vx > Q12(0.0f))
     {
@@ -564,7 +564,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D3DA4
         }
     }
 
-    if (g_Controller0->clickedBtnFlags & ControllerFlag_R3)
+    if (g_Controller0->buttonFlags.clicked & ControllerFlag_R3)
     {
         SD_Call(Sfx_Unk1529);
     }

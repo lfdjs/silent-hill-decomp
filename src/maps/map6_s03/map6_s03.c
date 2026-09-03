@@ -31,7 +31,7 @@ void func_800D7F98(void) // 0x800D7F98
 
     if (Savegame_EventFlagGet(EventFlag_435))
     {
-        bgmFlags = BgmFlag_Layer0;
+        bgmFlags = BgmFlag_Layer1;
         if (Savegame_EventFlagGet(EventFlag_437))
         {
             fadeSpeed = 0x547;
@@ -116,11 +116,11 @@ void func_800D7F98(void) // 0x800D7F98
         if (!Savegame_EventFlagGet(EventFlag_431))
         {
             fadeSpeed = 0x547;
-            bgmFlags = BgmFlag_Layer1;
+            bgmFlags = BgmFlag_Layer2;
         }
     }
 
-    Bgm_Update(bgmFlags, fadeSpeed, &D_800DBCDC);
+    Bgm_LayersUpdate(bgmFlags, fadeSpeed, &D_800DBCDC);
 }
 
 void GameBoot_LoadScreen_StageString(void) {}
@@ -162,7 +162,7 @@ void MapEvent_CommonItemTake(void) // 0x800D81AC
 
 void func_800D822C(void) // 0x800D822C
 {
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip)
     {
         if (g_SysWork.sysStateSteps[0] == 3)
         {
@@ -220,7 +220,7 @@ void func_800D822C(void) // 0x800D822C
 
 void func_800D84EC(void) // 0x800D84EC
 {
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip)
     {
         if (g_SysWork.sysStateSteps[0] == 4)
         {
@@ -295,7 +295,7 @@ void Map_WorldObjectsInit(void) // 0x800D8818
 
     if (g_SavegamePtr->gameDifficulty == GameDifficulty_Easy)
     {
-        g_SysWork.npcFlagsId = 3;
+        g_SysWork.npcFlagId = 3;
     }
 
     WorldObject_ModelNameSet(&g_CommonWorldObjects[0], g_CommonWorldObjectNames[2]);
@@ -355,7 +355,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D89A0
         }
         else
         {
-            collFlags = CollisionTriggerFlag_1;
+            collFlags = CollisionTriggerFlag_Objects;
         }
 
         Collision_FlagBitsSet(collFlags);

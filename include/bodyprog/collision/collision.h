@@ -17,12 +17,12 @@
  */
 typedef enum _CollisionTriggerFlags
 {
-    CollisionTriggerFlag_None = 0,
-    CollisionTriggerFlag_0    = 1 << 0, // Enables map collisions.
-    CollisionTriggerFlag_1    = 1 << 1, // Enables objects collisions.
-    CollisionTriggerFlag_2    = 1 << 2, // Enables alternative objects collisions?
-    CollisionTriggerFlag_3    = 1 << 3, /** @unused Only ever called in `MAP6_S05`. */
-    CollisionTriggerFlag_All  = 0xFFFF
+    CollisionTriggerFlag_None    = 0,
+    CollisionTriggerFlag_Map     = 1 << 0,
+    CollisionTriggerFlag_Objects = 1 << 1,
+    CollisionTriggerFlag_2       = 1 << 2, // Enables alternative objects collisions?
+    CollisionTriggerFlag_3       = 1 << 3, /** @unused Only ever called in `MAP6_S05`. */
+    CollisionTriggerFlag_All     = 0xFFFF
 } e_CollisionTriggerFlags;
 
 /** @brief Collision types. */
@@ -84,12 +84,12 @@ typedef struct
 typedef struct
 {
     /* 0x0  */ s_CollisionState_44_0 field_0;
-    /* 0x6  */ s16                   field_6;
+    /* 0x6  */ q7_8                  radiusOffset;
     /* 0x8  */ s_CollisionState_44_0 field_8;
     /* 0xE  */ s16                   field_E;
     /* 0x10 */ s8*                   field_10[8];
     /* 0x30 */ s_CollisionState_44_0 field_30;
-    /* 0x36 */ s16                   field_36;
+    /* 0x36 */ q7_8                  field_36; // Another radius offset for character collision?
 } s_CollisionState_44;
 
 typedef struct
@@ -105,7 +105,7 @@ typedef struct
 
 typedef union
 {
-    /* 0x0 */ q7_8 field_0; // Something related to character radius???
+    /* 0x0 */ q7_8 radiusOffset;
               struct
               {
                   /* 0x0 */ u8 surfaceIdx0;
@@ -145,8 +145,8 @@ typedef struct _CollisionCharaState
     /* 0x20 */ q23_8      positionToX;
     /* 0x24 */ q23_8      positionToZ;
     /* 0x28 */ q7_8       radius;
-    /* 0x2A */ q7_8       topPos;
-    /* 0x2C */ q7_8       bottomPos;
+    /* 0x2A */ q7_8       top;
+    /* 0x2C */ q7_8       bottom;
 } s_CollisionCharaState;
 
 typedef struct _CollisionState
@@ -175,12 +175,12 @@ typedef struct _CollisionState
                  union
                  {
                      DVECTOR_XZ offset; /** Q23.8 */
-                     s32        field_0;
+                     q23_8      vx;
     /* 0x98   */ } charaPositionFrom;
                  union
                  {
                      DVECTOR_XZ offset; /** Q23.8 */
-                     s32        field_0;
+                     q23_8      vz;
     /* 0x9C   */ } charaPositionTo;
                  union
                  {
@@ -195,8 +195,8 @@ typedef struct _CollisionState
                      } s_0;
                      struct
                      {
-                         /* 0x0 */ q7_8 field_0; // Set to absolute character bottom height.
-                         /* 0x2 */ q7_8 field_2; // Set to absolute character top height.
+                         /* 0x0 */ q7_8 bottom; // Set to absolute character bottom height.
+                         /* 0x2 */ q7_8 top;    // Set to absolute character top height.
                          /* 0x4 */ s16  field_4;
                          /* 0x6 */ u8   collisionState; /** `e_CharaCollisionState` */
                          /* 0x8 */ u8*  field_8;
@@ -296,7 +296,7 @@ s32 Collision_WallResponse(s_CollisionResult* collResult, const VECTOR3* moveOff
  * @param collResult Output collision result with the XZ offset vector adjusted to push away from a wall.
  * @param pos Center position.
  * @param groundHeight Base ground height.
- * @param headingAngle Starting heading angle on the XZ plane for the probe circle.
+ * @param headingAngle Start heading angle on the XZ plane for the probe circle.
  */
 void Collision_WallPush(s_CollisionResult* collResult, const VECTOR3* pos, q19_12 groundHeight, q19_12 headingAngle);
 
@@ -341,13 +341,20 @@ s32 Collision_OffsetCheck(s_CollisionResult* collResult, VECTOR* offset, const s
 
 s32 func_8006A42C(s_CollisionResult* collResult, const VECTOR3* offset, const s_CollisionCylinder* cylinder);
 
-bool func_8006A4A8(s_CollisionResult* collResult, VECTOR3* moveOffset, const s_CollisionCylinder* cylinder, bool arg3,
-                   s_IpdCollisionData** collDataPtrs, s32 collDataIdx, s_func_8006CF18* arg6, s32 arg7,
-                   s_SubCharacter** charas, s32 charaCount);
+// Something for character movement.
+s32 func_8006A4A8(s_CollisionResult* collResult, VECTOR3* moveOffset, const s_CollisionCylinder* cylinder, bool arg3,
+                  s_IpdCollisionData** collDataPtrs, s32 collDataIdx, s_func_8006CF18* arg6, s32 arg7,
+                  s_SubCharacter** charas, s32 charaCount);
 
-/** @brief Slows down colliding characters according to relational cylinder collision. */
-void Collision_TargetCharaCollidingSlowDown(VECTOR3* offset, const s_CollisionCylinder* cylinder,
-                                            s_SubCharacter** charas, s32 charaCount);
+/** @brief Dampens a character's movement offset according to relational cylinder collisions with other characters.
+ *
+ * @param moveOffset Move offset to dampen.
+ * @param cylinder Collision cylinder.
+ * @param charas Characters to collide.
+ * @param charaCount Number of characters.
+ */
+void Collision_MoveOffsetDampen(VECTOR3* moveOffset, const s_CollisionCylinder* cylinder,
+                                s_SubCharacter** charas, s32 charaCount);
 
 /** @brief Initializes a collision state for a new pass.
  *
@@ -395,7 +402,7 @@ void func_8006BB50(s_CollisionState* state, s32 arg1);
 q23_8 func_8006BC34(s_CollisionState* state);
 
 /** `arg3` and `arg4` might be XY or XZ position components. */
-void func_8006BCC4(s_CollisionState_44* arg0, s8* arg1, u32 arg2, q7_8 distX, q7_8 distZ, q7_8 arg5);
+void func_8006BCC4(s_CollisionState_44* arg0, s8* arg1, u32 arg2, q7_8 distX, q7_8 distZ, q7_8 radiusOffset);
 
 void func_8006BDDC(s_CollisionState_44_0* arg0, q3_12 rotX, q3_12 rotY);
 

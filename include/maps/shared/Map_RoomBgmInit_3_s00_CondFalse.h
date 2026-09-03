@@ -78,9 +78,9 @@ void Map_RoomBgmInit_CondFalse(void)
             break;
 
         default:
-            bgmFlags = BgmFlag_Layer0;
+            bgmFlags = BgmFlag_Layer1;
             break;
     }
 
-    Bgm_Update(bgmFlags, fadeSpeed, NULL);
+    Bgm_LayersUpdate(bgmFlags, fadeSpeed, NULL);
 }

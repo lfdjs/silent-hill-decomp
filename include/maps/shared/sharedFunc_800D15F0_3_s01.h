@@ -31,7 +31,7 @@ void sharedFunc_800D15F0_3_s01(void)
     s32 temp2;
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 9 && g_SysWork.sysStateSteps[0] < 17)
     {
         SysWork_StateStepSet(0, 17);
@@ -92,10 +92,10 @@ void sharedFunc_800D15F0_3_s01(void)
 
         case 4:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
-            sharedData_800D4D10_3_s01 += (g_Controller0->sticks_24.sticks_0.leftX * 16384) / 75;
+            sharedData_800D4D10_3_s01 += (g_Controller0->normalizedSticks.sticks_0.leftX * 16384) / 75;
             sharedData_800D4D10_3_s01  = CLAMP_RANGE(sharedData_800D4D10_3_s01, Q12(-70.0f), Q12(68.0f));
 
-            sharedData_800D4D14_3_s01 += (g_Controller0->sticks_24.sticks_0.leftY * 16384) / 75;
+            sharedData_800D4D14_3_s01 += (g_Controller0->normalizedSticks.sticks_0.leftY * 16384) / 75;
             sharedData_800D4D14_3_s01  = CLAMP_RANGE(sharedData_800D4D14_3_s01, Q12(-110.0f), Q12(110.0f));
 
             Game_TimerUpdate();
@@ -103,13 +103,13 @@ void sharedFunc_800D15F0_3_s01(void)
             cursorX = FP_FROM(sharedData_800D4D10_3_s01, Q12_SHIFT) + 8;
             Gfx_CursorDraw(cursorX, FP_FROM(sharedData_800D4D14_3_s01, Q12_SHIFT) + 8, 8, 8, 0, 64, 32, 32, 128, 192, 0, 12);
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
             {
                 SysWork_StateStepSet(0, 6);
                 break;
             }
 
-            if (!(g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter))
+            if (!(g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter))
             {
                 break;
             }

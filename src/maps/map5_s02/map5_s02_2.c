@@ -435,7 +435,7 @@ void MapEvent_KaufmannBarFightCutscene(void) // 0x800D5744
     SVECTOR3 unused;
     s32      i;
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 3 && g_SysWork.sysStateSteps[0] < 41)
     {
         SysWork_StateStepSet(0, 43);
@@ -471,7 +471,7 @@ void MapEvent_KaufmannBarFightCutscene(void) // 0x800D5744
             sharedFunc_800D2EB4_0_s00();
             WorldGfx_PlayerHeldItemSet(InvItemId_Handgun);
 
-            g_SysWork.playerWork.player.collision.state = CharaCollisionState_5;
+            g_SysWork.playerWork.player.collision.state = CharaCollisionState_Default;
 
             Event_CharaAnimCmdExecute(CharaAnimCmd_SetState, &g_SysWork.playerWork.player, 153, false);
             D_800D94F4 = 0;
@@ -766,7 +766,7 @@ void MapEvent_KaufmannBarFightCutscene(void) // 0x800D5744
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "KAU", g_Cutscene_Timer, FS_BUFFER_17);
         Dms_CharacterTransformGet(&g_SysWork.npcs[1].position, &g_SysWork.npcs[1].rotation, "CLD4", g_Cutscene_Timer, FS_BUFFER_17);
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_17));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_17));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -847,7 +847,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D68FC
                 WorldObjects_Add(&g_WorldObject_Key.object, &g_WorldObject_Key.position, &g_WorldObject_Key.rotation);
             }
 
-            Collision_FlagBitsSet(CollisionTriggerFlag_1);
+            Collision_FlagBitsSet(CollisionTriggerFlag_Objects);
         }
 
         if (Savegame_EventFlagGet(EventFlag_M5S02_UsedSafeKey))

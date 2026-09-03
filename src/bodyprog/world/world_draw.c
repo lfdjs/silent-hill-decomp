@@ -13,8 +13,6 @@
 #include "bodyprog/sound/sound_system.h"
 #include "bodyprog/text/text_draw.h"
 #include "main/fsqueue.h"
-#include "main/rng.h"
-#include "screens/stream/stream.h"
 
 const s32 __pad_rodata_80025524 = 0;
 
@@ -24,9 +22,9 @@ s_WorldGfxWork g_WorldGfxWork;
 // WORLD INITALIZATION
 // ========================================
 
-s_LinkedBone* WorldGfx_CharaModelBonesGet(e_CharaId charaId) // 0x8003BE50
+s_BoneNode* WorldGfx_CharaModelBoneNodesGet(e_CharaId charaId)
 {
-    return g_WorldGfxWork.registeredCharaModels[charaId]->skeleton.bones_C;
+    return g_WorldGfxWork.registeredCharaModels[charaId]->skeleton.boneNodes;
 }
 
 void GameFs_BgEtcGfxLoad(void)
@@ -41,7 +39,7 @@ void GameFs_BgItemLoad(void)
     g_WorldGfxWork.itemLmQueueIdx = Fs_QueueStartRead(FILE_BG_BG_ITEM_PLM, &g_WorldGfxWork.itemLmHdr);
 }
 
-void GameFs_CommonItemsTextureLoad(void) // 0x8003BED0
+static void GameFs_CommonItemsTextureLoad(void)
 {
     static s_FsImageDesc IMAGE_TIM = {
         .tPage = { 0, 15 },
@@ -105,13 +103,13 @@ s32 Map_SpeedZoneTypeGet(q19_12 posX, q19_12 posZ) // 0x8003BF60
     return zoneType;
 }
 
-void WorldGfx_Init(void) // 0x8003C048
+void World_Init(void) // 0x8003C048
 {
     WorldEnv_Init();
 
     g_WorldGfxWork.useStoredPoint = false;
 
-    Ipd_Init(GLOBAL_LM_BUFFER, IPD_BUFFER, 0x2C000);
+    WorldMap_Init(GLOBAL_LM_BUFFER, IPD_BUFFER, 0x2C000);
     Collision_Init();
 
     g_SysWork.lightIntensity = Q12(1.0f);
@@ -194,19 +192,19 @@ void WorldGfx_MapInit(s_MapOverlayHdr* mapHdr, s32 playerPosX, s32 playerPosZ) /
     }
 
     mapInfo = mapHdr->mapInfo;
-    Ipd_MapInfoSet(mapInfo->tag, mapInfo->plmFileIdx, activeIpdCount, CHECK_FLAG(mapInfo->flags, MapFlag_Interior, false), 0, 0);
+    WorldMap_InfoSet(mapInfo->tag, mapInfo->plmFileIdx, activeIpdCount, CHECK_FLAG(mapInfo->flags, MapFlag_Interior, false), 0, 0);
 
     if (mapHdr->mapInfo == &MAP_INFOS[MapType_THR])
     {
-        Ipd_ChunkSet(FILE_BG_THR05FD_IPD, -1, 8);
+        WorldMap_ChunkSet(FILE_BG_THR05FD_IPD, -1, 8);
     }
 
-    Ipd_ChunkInit(playerPosX, playerPosZ, playerPosX, playerPosZ);
+    WorldMap_ChunkInit(playerPosX, playerPosZ, playerPosX, playerPosZ);
 }
 
 void Map_ActiveChunksClear(void) // 0x8003C2EC
 {
-    Ipd_ActiveChunksClear();
+    WorldMap_ActiveChunksClear();
 }
 
 void WorldGfx_MapReset(void) // 0x8003C30C
@@ -216,12 +214,12 @@ void WorldGfx_MapReset(void) // 0x8003C30C
     mapFlags = g_WorldGfxWork.mapInfo->flags;
     if ((mapFlags & MapFlag_Interior) && (mapFlags & (MapFlag_OneActiveChunk | MapFlag_TwoActiveChunks)))
     {
-        Ipd_WorldReset();
+        WorldMap_Reset();
         return;
     }
 
-    Ipd_ActiveChunksClear();
-    Ipd_TexturesRefClear();
+    WorldMap_ActiveChunksClear();
+    WorldMap_TexturesRefClear();
 }
 
 void WorldGfx_IpdSamplePointStore(void) // 0x8003C368
@@ -347,7 +345,7 @@ void WorldGfx_CloseRangeChunksInit(void) // 0x8003C3AC
         projPos.vz   = CLAMP(projPos.vz,   alignedPosZ + 1, alignedPosZ + (HALF_CELL_SIZE - 1));
     }
 
-    Ipd_ChunkInit(samplePos.vx, samplePos.vz, projPos.vx, projPos.vz);
+    WorldMap_ChunkInit(samplePos.vx, samplePos.vz, projPos.vx, projPos.vz);
 
     #undef HALF_CELL_SIZE
     #undef PROJ_DIST_NEAR
@@ -357,7 +355,7 @@ void WorldGfx_CloseRangeChunksInit(void) // 0x8003C3AC
 bool WorldGfx_ChunkInitCheck(void) // 0x8003C850
 {
     WorldGfx_CloseRangeChunksInit();
-    return Ipd_ChunksLoadedCheck();
+    return WorldMap_ActiveModelsLoadStateCheck();
 }
 
 void WorldGfx_Draw(bool arg0) // 0x8003C878
@@ -365,15 +363,15 @@ void WorldGfx_Draw(bool arg0) // 0x8003C878
     // Draw world objects.
     WorldObjects_DrawAllObjects(&g_WorldGfxWork);
 
-    // Load active chunks.
-    while (Ipd_NextChunkLoadCheck())
+    // Load active chunk.
+    while (WorldMap_NextChunkLoadCheck())
     {
         WorldGfx_CloseRangeChunksInit();
         Fs_QueueWaitForEmpty();
     }
 
     // Draw active chunks.
-    Ipd_ChunksDraw(&g_OrderingTable0[g_ActiveBufferIdx], arg0);
+    WorldMap_ChunksDraw(&g_OrderingTable0[g_ActiveBufferIdx], arg0);
 
     WorldGfx_2dEffectsDraw();
 }
@@ -384,8 +382,8 @@ void WorldGfx_Draw(bool arg0) // 0x8003C878
 
 void WorldObject_ModelNameSet(s_WorldObjectModel* model, char* newStr) // 0x8003C8F8
 {
-    model->metadata.lmIdx = WorldModelLocation_None;
-    model->modelInfo.field_0  = 0;
+    model->metadata.modelLocation = WorldModelLocation_None;
+    model->modelInfo.field_0      = 0;
 
     StringCopy(model->metadata.name.str, newStr);
 
@@ -407,24 +405,24 @@ void WorldObjects_Add(s_WorldObjectModel* model, const VECTOR3* pos, const SVECT
     // Check if array of world objects to draw is full.
     if (g_WorldGfxWork.objectCount < ARRAY_SIZE(g_WorldGfxWork.objects))
     {
-        if (model->metadata.lmIdx == WorldModelLocation_None)
+        if (model->metadata.modelLocation == WorldModelLocation_None)
         {
             GameFs_CommonItemsTextureLoad();
 
-            modelLoc = Map_WorldObjectModelLocationGet(model, &model->metadata, g_SysWork.playerWork.player.position.vx, g_SysWork.playerWork.player.position.vz);
+            modelLoc = WorldMap_ObjectModelLocationGet(model, &model->metadata, g_SysWork.playerWork.player.position.vx, g_SysWork.playerWork.player.position.vz);
             if (modelLoc == WorldModelLocation_None)
             {
-                if (!Lm_ModelFind(model, &g_WorldGfxWork.itemLmHdr, &model->metadata))
-                {
-                    return;
-                }
-                else
+                if (Lm_ModelFind(model, &g_WorldGfxWork.itemLmHdr, &model->metadata))
                 {
                     modelLoc = WorldModelLocation_Global;
                 }
+                else
+                {
+                    return;
+                }
             }
 
-            model->metadata.lmIdx = modelLoc;
+            model->metadata.modelLocation = modelLoc;
         }
 
         // Compute geometry position and rotation.
@@ -514,12 +512,12 @@ void WorldObjects_Draw(s_WorldObject* obj) // 0x8003CBA4
 
 void WorldObjects_DrawStep(s_WorldObjectModel* model, MATRIX* viewMat, MATRIX* worldMat) // 0x8003CC7C
 {
-    s8                     lmIdx;
+    s8                     modelLoc;
     s_WorldObjectMetadata* objMetaCpy;
     s_ModelHeader*         modelHdr;
 
-    lmIdx = model->metadata.lmIdx;
-    if (lmIdx == 0)
+    modelLoc = model->metadata.modelLocation;
+    if (modelLoc == WorldModelLocation_None)
     {
         return;
     }
@@ -527,17 +525,17 @@ void WorldObjects_DrawStep(s_WorldObjectModel* model, MATRIX* viewMat, MATRIX* w
     modelHdr   = model->modelInfo.modelHdr;
     objMetaCpy = &model->metadata;
 
-    if (lmIdx >= 3 && lmIdx < 7)
+    if (modelLoc >= WorldModelLocation_Chunk2 && modelLoc <= WorldModelLocation_Unk6)
     {
-        if (!Ipd_IsLoaded(lmIdx - 3))
+        if (WorldMap_ActiveChunkLoadedCheck(modelLoc - 3) == WorldModelLocation_None)
         {
-            model->metadata.lmIdx = WorldModelLocation_None;
+            model->metadata.modelLocation = WorldModelLocation_None;
         }
     }
 
     if (COMPARE_FILENAMES(&objMetaCpy->name, &modelHdr->name))
     {
-        model->metadata.lmIdx = WorldModelLocation_None;
+        model->metadata.modelLocation = WorldModelLocation_None;
         return;
     }
 
@@ -681,7 +679,7 @@ s32 WorldGfx_PlayerHeldItemSet(e_InvItemId itemId) // 0x8003CDA0
         heldItem->queueIdx = Fs_QueueStartReadTim(fileIdx, FS_BUFFER_10, &heldItem->imageDesc);
     }
 
-    // Define index of model file to lead.
+    // Define index of model file to load.
     switch (itemId)
     {
         case NO_VALUE:
@@ -1173,7 +1171,7 @@ void WorldGfx_CharaModelProcessLoad(s_CharaModel* model) // 0x8003D9C8
         skel = &model->skeleton;
 
         Lm_MaterialFlagsApply(model->lmHdr);
-        Skeleton_Init(skel, model->skeleton.bones_C, 56);
+        Skeleton_Init(skel, model->skeleton.boneNodes, BONE_NODE_COUNT_MAX);
         func_8004506C(skel, model->lmHdr);
         func_800452EC(skel);
         func_800453E8(skel, true);

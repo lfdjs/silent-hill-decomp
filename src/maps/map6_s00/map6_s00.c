@@ -95,7 +95,7 @@ void func_800EB11C(void) // 0x800EB11C
     s32 vol;
 
     // Skip.
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip &&
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < EventState_Skip)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -339,7 +339,7 @@ void func_800EB11C(void) // 0x800EB11C
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, FS_BUFFER_15);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_15));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_15));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -366,15 +366,15 @@ void Map_WorldObjectsInit(void) // 0x800EBCE8
     switch (g_SavegamePtr->gameDifficulty)
     {
         case GameDifficulty_Normal:
-            g_SysWork.npcFlagsId = 4;
+            g_SysWork.npcFlagId = 4;
             break;
 
         case GameDifficulty_Easy:
-            g_SysWork.npcFlagsId = 3;
+            g_SysWork.npcFlagId = 3;
             break;
 
         default:
-            g_SysWork.npcFlagsId = 5;
+            g_SysWork.npcFlagId = 5;
             break;
     }
 
@@ -409,7 +409,7 @@ void Map_WorldObjectsUpdate(void) // 0x800EBEE0
     {
         if (!Savegame_EventFlagGet(EventFlag_402))
         {
-            collFlags |= CollisionTriggerFlag_1;
+            collFlags |= CollisionTriggerFlag_Objects;
         }
 
         Text_Debug_PositionSet(30, 30);
@@ -432,7 +432,7 @@ void Map_WorldObjectsUpdate(void) // 0x800EBEE0
                 WorldObjects_Add(&g_WorldObject_DrOpen1.object, &g_WorldObject_DrOpen1.position, &SVECTOR3_Zero);
                 WorldObjects_Add(&g_WorldObject_DrOpen2.object, &g_WorldObject_DrOpen2.position, &SVECTOR3_Zero);
 
-                collFlags |= CollisionTriggerFlag_1;
+                collFlags |= CollisionTriggerFlag_Objects;
             }
             else
             {

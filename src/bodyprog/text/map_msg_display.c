@@ -17,8 +17,8 @@
 // STATIC VARIABLES
 // ========================================
 
-static s32 g_MapMsg_CurrentIdx       = 0;
-static s16 g_MapMsg_SelectFlashTimer = 0;
+static s32   g_MapMsg_CurrentIdx       = 0;
+static q3_12 g_MapMsg_SelectFlashTimer = Q12(0.0f);
 
 // ========================================
 // GLOBAL VARIABLES
@@ -28,35 +28,34 @@ s_MapMsgSelect g_MapMsg_Select;
 u8             g_MapMsg_AudioLoadBlock;
 s8             g_MapMsg_SelectCancelIdx;
 
-// @hack JP calls different `Gfx_StringSetColor` / `Gfx_StringDraw` funcs here.
+// @hack JP calls different `Gfx_StringColorSet` / `Gfx_StringDraw` funcs here.
 // The normal funcs available are also used in JP, so can't be renamed.
-// For now override `Gfx_StringSetColor` calls in this file until those JP funcs get figured out.
+// For now override `Gfx_StringColorSet` calls in this file until those JP funcs get figured out.
 #if VERSION_REGION_IS(NTSCJ)
-    #define Gfx_StringSetColor Gfx_StringSetColor_JP
+    #define Gfx_StringColorSet Gfx_StringColorSet_JP
 #endif
 
 s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
 {
-    #define MSG_TIMER_MAX   (Q12(524288.0f) - 1)
     #define FINISH_CUTSCENE 0xFF
     #define FINISH_MAP_MSG  0xFF
 
-    s32        temp_s1;
-    bool       hasInput;
-    s32        temp;
-    s32        var_a1;
-    static s32 stateMachineIdx0;
-    static s32 stateMachineIdx1;
-    static s32 msgDisplayLength;
-    static s32 msgIdx;
-    static s32 msgDisplayInc;
-    static s32 D_800BCD74;
+    s32         temp_s1;
+    bool        hasInput;
+    s32         temp;
+    s32         var_a1;
+    static s32  stateMachineIdx0;
+    static s32  stateMachineIdx1;
+    static s32  displayLength;
+    static s32  activeMapMsgIdx;
+    static s32  displayLengthInc;
+    static bool loadAudio;
 
     // Check for user input.
     hasInput = false;
-    if ((g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
-                                          g_GameWorkPtr->config.controllerConfig.cancel)) ||
-        (g_Controller0->heldBtnFlags & g_GameWorkPtr->config.controllerConfig.skip))
+    if ((g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
+                                               g_GameWorkPtr->config.controllerConfig.cancel)) ||
+        (g_Controller0->buttonFlags.held & g_GameWorkPtr->config.controllerConfig.skip))
     {
         hasInput = true;
     }
@@ -64,7 +63,7 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
     g_SysWork.playerWork.player.properties.player.gasWeaponPowerTimer = Q12(0.0f);
     func_8004C564(g_SysWork.playerCombat.weaponAttack, WEAPON_ATTACK(EquippedWeaponId_RockDrill, AttackInputType_Tap));
 
-    if (msgIdx != mapMsgIdx)
+    if (activeMapMsgIdx != mapMsgIdx)
     {
         g_SysWork.isMgsStringSet = false;
     }
@@ -79,12 +78,12 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
             g_MapMsg_CurrentIdx              = mapMsgIdx;
             stateMachineIdx0                 = 0;
             stateMachineIdx1                 = 0;
-            msgIdx                           = mapMsgIdx;
-            msgDisplayLength                 = 0;
-            msgDisplayInc                    = 2; // Advance 2 glyphs at a time.
+            activeMapMsgIdx                  = mapMsgIdx;
+            displayLength                    = 0;
+            displayLengthInc                 = 2; // Advance 2 glyphs at a time.
 
-            Gfx_MapMsg_DefaultStringInfoSet();
-            var_a1 = Gfx_MapMsg_CalculateWidths(g_MapMsg_CurrentIdx);
+            Gfx_MapMsg_Reset();
+            var_a1 = Gfx_MapMsg_WidthsCompute(g_MapMsg_CurrentIdx);
 
 #if VERSION_REGION_IS(NTSCJ)
             if (var_a1 != 0)
@@ -103,7 +102,7 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
             }
 #endif
 
-            D_800BCD74 = 1;
+            loadAudio = true;
             g_SysWork.isMgsStringSet++;
             return MapMsgState_Finish;
 
@@ -112,32 +111,32 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
             {
                 if (Sd_AudioStreamingCheck() == AudioStreamingState_XaLoadPending)
                 {
-                    D_800BCD74 = 0;
+                    loadAudio = false;
                     break;
                 }
 
-                if (D_800BCD74 != 0)
+                if (loadAudio)
                 {
                     break;
                 }
             }
             else
             {
-                D_800BCD74 = 0;
+                loadAudio = false;
             }
 
-            Gfx_StringSetColor(StringColorId_White);
+            Gfx_StringColorSet(StringColorId_White);
 #if VERSION_REGION_IS(NTSC)
-            Gfx_StringSetPosition(40, 160);
+            Gfx_StringPositionSet(40, 160);
 #endif
 
-            msgDisplayLength += msgDisplayInc;
-            msgDisplayLength  = CLAMP(msgDisplayLength, 0, MAP_MESSAGE_DISPLAY_ALL_LENGTH);
+            displayLength += displayLengthInc;
+            displayLength  = CLAMP(displayLength, 0, MAP_MESSAGE_DISPLAY_ALL_LENGTH);
 
-            if (g_MapMsg_AudioLoadBlock != 0 && g_SysWork.mapMsgTimer > 0)
+            if (g_MapMsg_AudioLoadBlock != 0 && g_SysWork.mapMsgTimer > Q12(0.0f))
             {
                 g_SysWork.mapMsgTimer -= g_DeltaTimeRaw;
-                g_SysWork.mapMsgTimer  = CLAMP(g_SysWork.mapMsgTimer, Q12(0.0f), MSG_TIMER_MAX);
+                g_SysWork.mapMsgTimer  = CLAMP(g_SysWork.mapMsgTimer, Q12(0.0f), INT_MAX);
             }
 
             temp_s1 = stateMachineIdx0;
@@ -154,7 +153,7 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
                     if (g_MapMsg_Select.maxIdx == temp)
                     {
                         if (!((g_MapMsg_AudioLoadBlock & (1 << 0)) || !hasInput) ||
-                            (g_MapMsg_AudioLoadBlock != 0 && g_SysWork.mapMsgTimer == 0))
+                            (g_MapMsg_AudioLoadBlock != 0 && g_SysWork.mapMsgTimer == Q12(0.0f)))
                         {
                             stateMachineIdx1 = FINISH_MAP_MSG;
 
@@ -165,12 +164,12 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
                             break;
                         }
                     }
-                    else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+                    else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
                     {
                         g_MapMsg_Select.maxIdx           = temp;
                         g_MapMsg_Select.selectedEntryIdx = g_MapMsg_SelectCancelIdx;
 
-                        Sd_PlaySfx(Sfx_MenuCancel, Q8(0.0f), Q8(0.25f));
+                        Sd_SfxPlay(Sfx_MenuCancel, Q8(0.0f), Q8(0.25f));
 
                         if (g_SysWork.silentYesSelection)
                         {
@@ -180,17 +179,17 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
                         stateMachineIdx1 = FINISH_MAP_MSG;
                         break;
                     }
-                    else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+                    else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
                     {
                         g_MapMsg_Select.maxIdx = temp;
 
                         if (g_MapMsg_Select.selectedEntryIdx == (s8)g_MapMsg_SelectCancelIdx)
                         {
-                            Sd_PlaySfx(Sfx_MenuCancel, Q8(0.0f), Q8(0.25f));
+                            Sd_SfxPlay(Sfx_MenuCancel, Q8(0.0f), Q8(0.25f));
                         }
                         else if (!g_SysWork.silentYesSelection)
                         {
-                            Sd_PlaySfx(Sfx_MenuConfirm, Q8(0.0f), Q8(0.25f));
+                            Sd_SfxPlay(Sfx_MenuConfirm, Q8(0.0f), Q8(0.25f));
                         }
 
                         if (g_SysWork.silentYesSelection)
@@ -203,19 +202,19 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
                     }
                 }
                 else if ((!(g_MapMsg_AudioLoadBlock & (1 << 0)) && hasInput && g_MapMsg_Select.maxIdx != 0) ||
-                         (g_MapMsg_AudioLoadBlock != 0 && g_SysWork.mapMsgTimer == 0))
+                         (g_MapMsg_AudioLoadBlock != 0 && g_SysWork.mapMsgTimer == Q12(0.0f)))
                 {
                     if (g_MapMsg_Select.maxIdx != NO_VALUE)
                     {
-                        g_MapMsg_Select.maxIdx  = NO_VALUE;
-                        stateMachineIdx1 = FINISH_MAP_MSG;
+                        g_MapMsg_Select.maxIdx = NO_VALUE;
+                        stateMachineIdx1       = FINISH_MAP_MSG;
                         break;
                     }
 
                     g_MapMsg_CurrentIdx++;
                     g_SysWork.mapMsgTimer = g_MapMsg_Select.maxIdx;
 
-                    var_a1 = Gfx_MapMsg_CalculateWidths(g_MapMsg_CurrentIdx);
+                    var_a1 = Gfx_MapMsg_WidthsCompute(g_MapMsg_CurrentIdx);
 
 #if VERSION_REGION_IS(NTSCJ)
                     if (var_a1 != 0)
@@ -234,12 +233,12 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
                     }
 #endif
 
-                    msgDisplayLength = 0;
+                    displayLength    = 0;
                     stateMachineIdx0 = 0;
 
                     if (g_MapMsg_AudioLoadBlock == MapMsgAudioLoadBlock_J2)
                     {
-                        D_800BCD74 = 0;
+                        loadAudio = false;
                         return MapMsgState_Idle;
                     }
 
@@ -248,7 +247,7 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
                         SD_Call(19);
                     }
 
-                    D_800BCD74 = 1;
+                    loadAudio = true;
                     return MapMsgState_Finish;
                 }
             }
@@ -256,14 +255,14 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
             {
                 if (hasInput)
                 {
-                    msgDisplayLength = MAP_MESSAGE_DISPLAY_ALL_LENGTH;
+                    displayLength = MAP_MESSAGE_DISPLAY_ALL_LENGTH;
                 }
             }
 
             stateMachineIdx0 = 0;
-            stateMachineIdx1 = Gfx_MapMsg_SelectionUpdate(g_MapMsg_CurrentIdx, &msgDisplayLength);
+            stateMachineIdx1 = Gfx_MapMsg_SelectionUpdate(g_MapMsg_CurrentIdx, &displayLength);
 
-            if (stateMachineIdx1 != 0 && stateMachineIdx1 < MapMsgCode_Select4)
+            if (stateMachineIdx1 != 0 && stateMachineIdx1 < MapMsgReturnCode_Select4)
             {
                 stateMachineIdx0 = NO_VALUE;
             }
@@ -274,51 +273,51 @@ s32 Gfx_MapMsg_Draw(s32 mapMsgIdx) // 0x800365B8
         return MapMsgState_Idle;
     }
 
-    g_SysWork.isMgsStringSet            = false;
+    g_SysWork.isMgsStringSet      = false;
     g_SysWork.enableHighResGlyphs = false;
-    msgDisplayLength               = 0;
+    displayLength                 = 0;
 
     if (g_SysWork.bgmStatusFlags & BgmStatusFlag_VoiceDialog)
     {
-        D_800BCD74 = 1;
+        loadAudio = true;
     }
 
     return g_MapMsg_Select.selectedEntryIdx + 1;
 
-    #undef MSG_TIMER_MAX
     #undef FINISH_CUTSCENE
     #undef FINISH_MAP_MSG
 }
 
-s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* arg1) // 0x80036B5C
+s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* displayLength) // 0x80036B5C
 {
+    #define FLASH_TIMER_MAX    Q12(0.5f)
     #define STRING_LINE_OFFSET 16
 
     s32 i;
-    s32 mapMsgCode;
+    s32 returnCode;
 
-    mapMsgCode = Gfx_MapMsg_StringDraw(g_MapOverlayHdr.mapMessages[mapMsgIdx], *arg1);
+    returnCode = Gfx_MapMsg_StringDraw(g_MapOverlayHdr.mapMessages[mapMsgIdx], *displayLength);
 
     g_MapMsg_SelectFlashTimer += g_DeltaTimeRaw;
-    if (g_MapMsg_SelectFlashTimer >= Q12(0.5f))
+    if (g_MapMsg_SelectFlashTimer >= FLASH_TIMER_MAX)
     {
-        g_MapMsg_SelectFlashTimer -= Q12(0.5f);
+        g_MapMsg_SelectFlashTimer -= FLASH_TIMER_MAX;
     }
 
-    switch (mapMsgCode)
+    switch (returnCode)
     {
         case NO_VALUE:
-        case MapMsgCode_None:
+        case MapMsgReturnCode_None:
             g_MapMsg_SelectFlashTimer = Q12(0.0f);
             break;
 
-        case MapMsgCode_Select2:
-        case MapMsgCode_Select3:
-        case MapMsgCode_Select4:
-            g_MapMsg_Select.maxIdx  = 1;
-            g_MapMsg_SelectCancelIdx = (mapMsgCode == 3) ? 2 : 1;
+        case MapMsgReturnCode_Select2:
+        case MapMsgReturnCode_Select3:
+        case MapMsgReturnCode_Select4:
+            g_MapMsg_Select.maxIdx   = 1;
+            g_MapMsg_SelectCancelIdx = (returnCode == 3) ? 2 : 1;
 
-            if (mapMsgCode == MapMsgCode_Select4)
+            if (returnCode == MapMsgReturnCode_Select4)
             {
                 // Shows selection prompt with map messages at indices 0 and 1.
                 // All maps have "Yes" and "No" as messages 0 and 1, respectively.
@@ -326,22 +325,22 @@ s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* arg1) // 0x80036B5C
                 {
                     if (g_MapMsg_Select.selectedEntryIdx == i)
                     {
-                        Gfx_StringSetColor(((g_MapMsg_SelectFlashTimer >> 10) * 3) + 4);
+                        Gfx_StringColorSet(((g_MapMsg_SelectFlashTimer >> 10) * 3) + 4);
                     }
                     else
                     {
-                        Gfx_StringSetColor(StringColorId_White);
+                        Gfx_StringColorSet(StringColorId_White);
                     }
 
 #if VERSION_REGION_IS(NTSC)
-                    Gfx_StringSetPosition(32, (STRING_LINE_OFFSET * i) + 98);
+                    Gfx_StringPositionSet(32, (STRING_LINE_OFFSET * i) + 98);
                     Gfx_StringDraw(g_MapOverlayHdr.mapMessages[i], MAP_MESSAGE_DISPLAY_ALL_LENGTH);
 #else
                     Gfx_StringDraw_JP(g_MapOverlayHdr.mapMessages[i], i);
 #endif
                 }
 
-                mapMsgCode = 2;
+                returnCode = 2;
             }
             else
             {
@@ -351,19 +350,19 @@ s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* arg1) // 0x80036B5C
                 // `[idx + 1]`: "Option 1"
                 // `[idx + 2]`: "Option 2"
                 // `[idx + 3]`: "Option 3"
-                for (i = 0; i < mapMsgCode; i++)
+                for (i = 0; i < returnCode; i++)
                 {
                     if (g_MapMsg_Select.selectedEntryIdx == i)
                     {
-                        Gfx_StringSetColor(((g_MapMsg_SelectFlashTimer >> 10) * 3) + 4);
+                        Gfx_StringColorSet(((g_MapMsg_SelectFlashTimer >> 10) * 3) + 4);
                     }
                     else
                     {
-                        Gfx_StringSetColor(StringColorId_White);
+                        Gfx_StringColorSet(StringColorId_White);
                     }
 
 #if VERSION_REGION_IS(NTSC)
-                    Gfx_StringSetPosition(32, (STRING_LINE_OFFSET * i) + 96);
+                    Gfx_StringPositionSet(32, (STRING_LINE_OFFSET * i) + 96);
                     Gfx_StringDraw(g_MapOverlayHdr.mapMessages[(mapMsgIdx + i) + 1], MAP_MESSAGE_DISPLAY_ALL_LENGTH);
 #else
                     Gfx_StringDraw_JP(g_MapOverlayHdr.mapMessages[(mapMsgIdx + i) + 1], i);
@@ -371,33 +370,34 @@ s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* arg1) // 0x80036B5C
                 }
             }
 
-            if (g_Controller0->clickedBtnFlags & ControllerFlag_LStickUp &&
+            if (g_Controller0->buttonFlags.clicked & ControllerFlag_LStickHighUp &&
                 g_MapMsg_Select.selectedEntryIdx != 0)
             {
                 g_MapMsg_SelectFlashTimer = Q12(0.0f);
                 g_MapMsg_Select.selectedEntryIdx--;
 
-                Sd_PlaySfx(Sfx_MenuMove, Q8(0.0f), Q8(0.25f));
+                Sd_SfxPlay(Sfx_MenuMove, Q8(0.0f), Q8(0.25f));
             }
 
-            if (g_Controller0->clickedBtnFlags & ControllerFlag_LStickDown &&
-                g_MapMsg_Select.selectedEntryIdx != (mapMsgCode - 1))
+            if (g_Controller0->buttonFlags.clicked & ControllerFlag_LStickHighDown &&
+                g_MapMsg_Select.selectedEntryIdx != (returnCode - 1))
             {
                 g_MapMsg_SelectFlashTimer = Q12(0.0f);
                 g_MapMsg_Select.selectedEntryIdx++;
 
-                Sd_PlaySfx(Sfx_MenuMove, Q8(0.0f), Q8(0.25f));
+                Sd_SfxPlay(Sfx_MenuMove, Q8(0.0f), Q8(0.25f));
             }
 
-            mapMsgCode = NO_VALUE;
+            returnCode = NO_VALUE;
             break;
 
-        case MapMsgCode_DisplayAll:
-            *arg1 = MAP_MESSAGE_DISPLAY_ALL_LENGTH;
+        case MapMsgReturnCode_DisplayAll:
+            *displayLength = MAP_MESSAGE_DISPLAY_ALL_LENGTH;
             break;
     }
 
-    return mapMsgCode;
+    return returnCode;
 
+    #undef FLASH_TIMER_MAX
     #undef STRING_LINE_OFFSET
 }

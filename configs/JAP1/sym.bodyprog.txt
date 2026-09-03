@@ -408,13 +408,13 @@ func_8003483C                                = 0x800345B0; // type:func
 //----------------------------------------------------------------------
 Anim_CharaTypeAnimInfoClear                  = 0x80034634; // type:func
 GameState_LoadScreen_Update                  = 0x8003465C; // type:func
-GameBoot_WorldStartup                        = 0x800346D8; // type:func
+GameBoot_InGameStartup                       = 0x800346D8; // type:func
 GameBoot_LoadingScreen                       = 0x80034BCC; // type:func
 GameBoot_NpcClear                            = 0x80034C3C; // type:func
 GameBoot_NpcInit                             = 0x80034C8C; // type:func
 GameBoot_InGameInit                          = 0x80034D2C; // type:func
 GameBoot_SavegameInitialize                  = 0x80034E30; // type:func
-GameBoot_PlayerInit                          = 0x80034EEC; // type:func
+GameBoot_WorldInit                           = 0x80034EEC; // type:func
 GameBoot_MapLoad                             = 0x80034F90; // type:func
 
 //--------------------------------------------------------------------------
@@ -424,25 +424,25 @@ Fs_CharaAnimDataOverlapCheck                 = 0x80035000; // type:func
 Fs_CharaAnimDataIdxGet                       = 0x8003506C; // type:func
 Fs_CharaAnimDataAlloc                        = 0x800350AC; // type:func
 Fs_CharaAnimDataUpdate                       = 0x800352D4; // type:func
-Fs_CharaAnimBoneInfoUpdate                   = 0x80035410; // type:func
+Fs_CharaAnimBoneInfoSet                      = 0x80035410; // type:func
 
 //----------------------------------------------------------------------------------
 //--- PA: 0x010994   VA: 0x800354F4   subsegment: c, game_boot/background_sound_init
 //----------------------------------------------------------------------------------
-Bgm_Init                                     = 0x800354F4; // type:func
-Bgm_ActiveBgmTrackCheck                      = 0x8003561C; // type:func
-Bgm_TrackSet                                 = 0x80035650; // type:func
-Bgm_ChannelSet                               = 0x80035698; // type:func
-func_8003596C                                = 0x800356E0; // type:func
+Sd_BgmInit                                   = 0x800354F4; // type:func
+Sd_BgmActiveSongCheck                        = 0x8003561C; // type:func
+Sd_BgmSongSet                                = 0x80035650; // type:func
+Sd_BgmChannelSet                             = 0x80035698; // type:func
+Sd_BgmUpdateTrack                            = 0x800356E0; // type:func
 Sd_AmbientSfxInit                            = 0x80035710; // type:func
-Sd_IsCurrentAmbientTargetCheck               = 0x80035824; // type:func
+Sd_ActiveAmbientSfxCheck                     = 0x80035824; // type:func
 Sd_AmbientSfxSet                             = 0x8003583C; // type:func
 
 //------------------------------------------------------------------------
 //--- PA: 0x010D18   VA: 0x80035878   subsegment: c, game_boot/load_screen
 //------------------------------------------------------------------------
 Math_MatrixTransform                         = 0x80035878; // type:func
-Gfx_MapEffectsSet                            = 0x800358CC; // type:func
+GameBoot_WolrdEnvInit                        = 0x800358CC; // type:func
 func_80035B98                                = 0x8003590C; // type:func
 GameBoot_LoadScreen_BackgroundImg            = 0x80035930; // type:func
 GameBoot_LoadScreen_PlayerRun                = 0x80035954; // type:func
@@ -450,13 +450,13 @@ GameBoot_LoadScreen_PlayerRun                = 0x80035954; // type:func
 //-------------------------------------------------------------
 //--- PA: 0x010FC8   VA: 0x80035B28   subsegment: c, events/bgm
 //-------------------------------------------------------------
-Bgm_TrackUpdate                              = 0x80035B28; // type:func
-Bgm_AllLayersMute                            = 0x80035B90; // type:func
-Bgm_LayerOnCheck                             = 0x80035BB8; // type:func
-Bgm_GlobalLayerVariablesUpdate               = 0x80035C44; // type:func
-Bgm_Update                                   = 0x80035CC0; // type:func
-func_800363D0                                = 0x80036144; // type:func
-Bgm_TrackChange                              = 0x80036180; // type:func
+Bgm_Update                                   = 0x80035B28; // type:func
+Bgm_LayerGlobalVariablesMute                 = 0x80035B90; // type:func
+Bgm_MuteCheck                                = 0x80035BB8; // type:func
+Bgm_LayerGlobalVariablesUpdate               = 0x80035C44; // type:func
+Bgm_LayersUpdate                             = 0x80035CC0; // type:func
+Bgm_MenuUpdate                               = 0x80036144; // type:func
+Bgm_SongChange                               = 0x80036180; // type:func
 Game_MapRoomIdxUpdate                        = 0x80036194; // type:func
 func_8003647C                                = 0x800361F0; // type:func
 func_80036498                                = 0x8003620C; // type:func
@@ -475,7 +475,7 @@ func_80037124                                = 0x80036EFC; // type:func
 //---------------------------------------------------------------
 //--- PA: 0x0123CC   VA: 0x80036F2C   subsegment: c, events/radio
 //---------------------------------------------------------------
-func_80037154                                = 0x80036F2C; // type:func
+Game_RadioNoiseReset                         = 0x80036F2C; // type:func
 Game_RadioSoundStop                          = 0x80036F60; // type:func
 
 //---------------------------------------------------------------------------
@@ -562,12 +562,12 @@ Collision_FlagsUpdate                        = 0x8003BC00; // type:func
 //------------------------------------------------------------------------
 //--- PA: 0x0170C8   VA: 0x8003BC28   subsegment: c, gfx/bodyprog_8003BE50
 //------------------------------------------------------------------------
-WorldGfx_CharaModelBonesGet                  = 0x8003BC28; // type:func
+WorldGfx_CharaModelBoneNodesGet              = 0x8003BC28; // type:func
 GameFs_BgEtcGfxLoad                          = 0x8003BC44; // type:func
 GameFs_BgItemLoad                            = 0x8003BC74; // type:func
 GameFs_CommonItemsTextureLoad                = 0x8003BCA8; // type:func
 Map_SpeedZoneTypeGet                         = 0x8003BD38; // type:func
-WorldGfx_Init                                = 0x8003BE20; // type:func
+World_Init                                   = 0x8003BE20; // type:func
 WorldGfx_HeldItemModelFree                   = 0x8003BE98; // type:func
 WorldGfx_CharaModelsFree                     = 0x8003BEE8; // type:func
 Chara_ModelFree                              = 0x8003BF84; // type:func
@@ -627,7 +627,7 @@ GameFs_FlameGfxLoad                          = 0x8003E4E8; // type:func
 func_8003E740                                = 0x8003E518; // type:func
 Game_SpotlightLoadScreenAttribsFix           = 0x8003E92C; // type:func
 Game_FlashlightAttributesFix                 = 0x8003E978; // type:func
-Gfx_MapEffectsAssign                         = 0x8003E9CC; // type:func
+WorldEnv_MapPresetSet                        = 0x8003E9CC; // type:func
 Game_TurnFlashlightOn                        = 0x8003EA94; // type:func
 Game_TurnFlashlightOff                       = 0x8003EABC; // type:func
 Game_FlashlightToggle                        = 0x8003EAE0; // type:func
@@ -689,56 +689,56 @@ func_800414E0                                = 0x800412B8; // type:func
 WorldMap_LoadStateGet                        = 0x800418B4; // type:func
 WorldMap_ChunkLoadStateGet                   = 0x800418F4; // type:func
 WorldMap_GlobalLmLoadStateGet                = 0x80041978; // type:func
-Ipd_Init                                     = 0x800419FC; // type:func
-Ipd_GlobalLmInit                             = 0x80041A8C; // type:func
-Ipd_GlobalLmHeaderInit                       = 0x80041AC4; // type:func
-Ipd_ChunkQueueIdxsClear                      = 0x80041AE8; // type:func
-Ipd_TexturesInit                             = 0x80041B20; // type:func
-Ipd_CollisionDataReset                       = 0x80041C70; // type:func
-Ipd_ChunkSet                                 = 0x80041CA8; // type:func
-Ipd_ActiveChunksClear                        = 0x80041DC8; // type:func
-Ipd_TexturesRefClear                         = 0x80041DF4; // type:func
-Ipd_WorldReset                               = 0x80041E98; // type:func
-Ipd_LmReset                                  = 0x80041ED4; // type:func
-Ipd_TextureInfoGet                           = 0x80041F50; // type:func
-Ipd_MapInfoSet                               = 0x80041FB0; // type:func
-Ipd_ChunksClear                              = 0x800420D8; // type:func
-Ipd_MakeGrid                                 = 0x800421CC; // type:func
+WorldMap_Init                                = 0x800419FC; // type:func
+WorldMap_GlobalLmInit                        = 0x80041A8C; // type:func
+WorldMap_GlobalLmHeaderInit                  = 0x80041AC4; // type:func
+WorldMap_ChunkQueueClear                     = 0x80041AE8; // type:func
+WorldMap_TexturesInit                        = 0x80041B20; // type:func
+WorldMap_CollisionDataReset                  = 0x80041C70; // type:func
+WorldMap_ChunkSet                            = 0x80041CA8; // type:func
+WorldMap_ActiveChunksClear                   = 0x80041DC8; // type:func
+WorldMap_TexturesRefClear                    = 0x80041DF4; // type:func
+WorldMap_Reset                               = 0x80041E98; // type:func
+WorldMap_GlobalLmReset                       = 0x80041ED4; // type:func
+WorldMap_ActiveTextureInfoGet                = 0x80041F50; // type:func
+WorldMap_InfoSet                             = 0x80041FB0; // type:func
+WorldMap_ChunksClear                         = 0x800420D8; // type:func
+WorldMap_MakeGrid                            = 0x800421CC; // type:func
 ConvertHexToS8                               = 0x80042334; // type:func
-Ipd_ActiveChunksCollisionDataGet             = 0x800423B0; // type:func
-Ipd_CollisionDataGet                         = 0x800424BC; // type:func
-Map_WorldObjectModelLocationGet              = 0x80042654; // type:func
-Ipd_IsLoaded                                 = 0x800429DC; // type:func
-Ipd_ChunkInit                                = 0x80042A14; // type:func
-Map_PaddedDistanceToChunkEdgeGet             = 0x80042BC0; // type:func
-Map_DistanceToChunkEdgeGet                   = 0x80042C04; // type:func
-Map_ChunkLoad                                = 0x80042C94; // type:func
-Ipd_ActiveChunksSample                       = 0x80042FBC; // type:func
-Ipd_DistanceToEdgeCalc                       = 0x80043110; // type:func
-Ipd_ChunkMaterialsApply                      = 0x80043190; // type:func
-Map_IpdChunkFileIdxGet                       = 0x8004332C; // type:func
-Map_IsIpdPresentCheck                        = 0x80043350; // type:func
-Ipd_FreeChunkFind                            = 0x800433BC; // type:func
-Ipd_LoadStart                                = 0x800434B0; // type:func
-Ipd_ChunksLoadedCheck                        = 0x80043518; // type:func
-Ipd_NextChunkLoadCheck                       = 0x80043608; // type:func
-Ipd_CloseChunkEdgeCheck                      = 0x80043714; // type:func
-Ipd_ChunksDraw                               = 0x800437FC; // type:func
-Ipd_CellPositionMatchCheck                   = 0x8004390C; // type:func
-Ipd_IsTextureLoaded                          = 0x80043948; // type:func
-Ipd_HeaderCollisionDataGet                   = 0x8004397C; // type:func
-Ipd_LoadedChunkInit                          = 0x8004399C; // type:func
-Ipd_MaterialsLoad                            = 0x80043A54; // type:func
-Ipd_HalfPageMaterialCountGet                 = 0x80043AD8; // type:func
+WorldMap_ActiveChunksCollisionDataGet        = 0x800423B0; // type:func
+WorldMap_CollisionDataGet                    = 0x800424BC; // type:func
+WorldMap_ObjectModelLocationGet              = 0x80042654; // type:func
+WorldMap_ActiveChunkLoadedCheck              = 0x800429DC; // type:func
+WorldMap_ChunkInit                           = 0x80042A14; // type:func
+WorldMap_PaddedDistanceToChunkEdgeGet        = 0x80042BC0; // type:func
+WorldMap_DistanceToChunkEdgeGet              = 0x80042C04; // type:func
+WorldMap_ChunkLoad                           = 0x80042C94; // type:func
+WorldMap_ActiveChunksSample                  = 0x80042FBC; // type:func
+WorldMap_DistanceToEdgeCalc                  = 0x80043110; // type:func
+WorldMap_ChunkMaterialsApply                 = 0x80043190; // type:func
+WorldMap_IpdChunkFileIdxGet                  = 0x8004332C; // type:func
+WorldMap_IsChunkPresentCheck                 = 0x80043350; // type:func
+WorldMap_FreeChunkSpaceFind                  = 0x800433BC; // type:func
+WorldMap_ChunkLoadStart                      = 0x800434B0; // type:func
+WorldMap_ActiveModelsLoadStateCheck          = 0x80043518; // type:func
+WorldMap_NextChunkLoadCheck                  = 0x80043608; // type:func
+WorldMap_CloseChunkEdgeCheck                 = 0x80043714; // type:func
+WorldMap_ChunksDraw                          = 0x800437FC; // type:func
+WorldMap_ChunkPositionMatchCheck             = 0x8004390C; // type:func
+WorldMap_TextureLoadedCheck                  = 0x80043948; // type:func
+WorldMap_HeaderCollisionDataGet              = 0x8004397C; // type:func
+WorldMap_ChunkPropertiesSet                  = 0x8004399C; // type:func
+WorldMap_ChunkMaterialsLoad                  = 0x80043A54; // type:func
+WorldMap_ChunkHalfPageMaterialCountGet       = 0x80043AD8; // type:func
 LmFilter_IsFullPage                          = 0x80043B1C; // type:func
 LmFilter_IsHalfPage                          = 0x80043B3C; // type:func
-Ipd_HeaderPtrsInit                           = 0x80043B7C; // type:func
-Ipd_HeaderModelLinkObjectLists               = 0x80043C28; // type:func
+WorldMap_ChunkHeaderPtrsInit                 = 0x80043B7C; // type:func
+WorldMap_ModelLinkObjectLists                = 0x80043C28; // type:func
 LmHeader_ModelHeaderSearch                   = 0x80043D04; // type:func
-Ipd_HeaderModelBufferLinkObjectLists         = 0x80043D60; // type:func
+WorldMap_ModelBufferLinkObjectLists          = 0x80043D60; // type:func
 func_80044044                                = 0x80043E1C; // type:func
-Ipd_ChunkDraw                                = 0x80043E68; // type:func
-Gfx_ChunkSubcellVisibleCheck                 = 0x800441F8; // type:func
+WorldMap_Draw                                = 0x80043E68; // type:func
+WorldMap_SubcellVisibleCheck                 = 0x800441F8; // type:func
 
 //-----------------------------------------------------------------------------
 //--- PA: 0x01F81C   VA: 0x8004437C   subsegment: c, gfx/bodyprog_anim_800445A4
@@ -775,27 +775,27 @@ func_80045534                                = 0x8004530C; // type:func
 //----------------------------------------------------------------
 SD_Call                                      = 0x80045854; // type:func
 Sd_AudioStreamingCheck                       = 0x80045900; // type:func
-func_80045BC8                                = 0x800459A0; // type:func
+Sd_MidiChannelTaskGet                        = 0x800459A0; // type:func
 SD_BranchCTRL                                = 0x800459B0; // type:func
 Sd_AudioSystemSet                            = 0x80045B00; // type:func
 SD_Init                                      = 0x80045BAC; // type:func
-sd_work_init                                 = 0x80045C1C; // type:func
+SD_InitStruct                                = 0x80045C1C; // type:func
 Sd_AudioStop                                 = 0x80045DD0; // type:func
-Sd_PlaySfx                                   = 0x80045E20; // type:func
+Sd_SfxPlay                                   = 0x80045E20; // type:func
 Sd_SfxAttributesUpdate                       = 0x80046198; // type:func
-func_80046620                                = 0x800463F8; // type:func
+Sd_SfxWithPitchPlay                          = 0x800463F8; // type:func
 Sd_LastSfxStop                               = 0x800466C4; // type:func
 Sd_SfxStop                                   = 0x800466E4; // type:func
 Sd_SfxStopStep                               = 0x80046704; // type:func
 Sd_AllSfxStop                                = 0x80046784; // type:func
 Sd_AllSfxWithRRStop                          = 0x800467C0; // type:func
-func_80046A24                                = 0x800467FC; // type:func
+Sd_SetupBgmMidiChannels                      = 0x800467FC; // type:func
 func_80046A70                                = 0x80046848; // type:func
-Sd_StopBgmTaskAdd                            = 0x800468B0; // type:func
-Sd_StopBgm                                   = 0x800468DC; // type:func
-Sd_StopBgmStep                               = 0x80046950; // type:func
-Sd_BgmLayerVolumeGet                         = 0x8004698C; // type:func
-Sd_BgmLayerVolumeSet                         = 0x80046A2C; // type:func
+Sd_BgmStopTaskAdd                            = 0x800468B0; // type:func
+Sd_BgmStop                                   = 0x800468DC; // type:func
+Sd_BgmStopStep                               = 0x80046950; // type:func
+Sd_MidiChannelVolumeGet                      = 0x8004698C; // type:func
+Sd_MidiChannelsVolumeSet                     = 0x80046A2C; // type:func
 Sd_XaAudioPlayTaskAdd                        = 0x80046B14; // type:func
 Sd_XaAudioLengthGet                          = 0x80046BA4; // type:func
 Sd_XaAudioPlay                               = 0x80046BD8; // type:func
@@ -804,10 +804,10 @@ Sd_XaPreLoadAudioTaskAdd                     = 0x80047094; // type:func
 Sd_XaPreLoadAudio                            = 0x800470E0; // type:func
 Sd_XaAudioStopTaskAdd                        = 0x800473E4; // type:func
 Sd_XaAudioStop                               = 0x8004740C; // type:func
-Sd_SetVolume                                 = 0x80047570; // type:func
-Sd_SetVolBgm                                 = 0x800475E0; // type:func
-Sd_SetVolXa                                  = 0x80047638; // type:func
-Sd_GetVolSe                                  = 0x80047690; // type:func
+Sd_GlobalVolumeSet                           = 0x80047570; // type:func
+Sd_BgmVolumeSet                              = 0x800475E0; // type:func
+Sd_XaVolumeSet                               = 0x80047638; // type:func
+Sd_SeVolumeGet                               = 0x80047690; // type:func
 Sd_TaskPoolAdd                               = 0x800476B4; // type:func
 Sd_TaskPoolUpdate                            = 0x80047848; // type:func
 Sd_SetReverbDepth                            = 0x800478A8; // type:func
@@ -877,20 +877,20 @@ vwOresenHokan                                = 0x8004A5A0; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x025AF4   VA: 0x8004A654   subsegment: c, text/text_draw_jp
 //--------------------------------------------------------------------
-Gfx_StringSetPosition                        = 0x8004A654; // type:func
-Gfx_Strings2dLayerIdxSet                     = 0x8004A698; // type:func
-Gfx_StringsReset2dLayerIdx                   = 0x8004A6A4; // type:func
-Gfx_StringSetColor                           = 0x8004A6B4; // type:func
+Gfx_StringPositionSet                        = 0x8004A654; // type:func
+Gfx_StringLayerIdxSet                        = 0x8004A698; // type:func
+Gfx_StringLayerIdxReset                      = 0x8004A6A4; // type:func
+Gfx_StringColorSet                           = 0x8004A6B4; // type:func
 Gfx_StringDraw                               = 0x8004A6C0; // type:func
 func_8004AA28                                = 0x8004AACC; // type:func
 func_8004AA6C                                = 0x8004AB10; // type:func
 func_8004AAE4                                = 0x8004AB88; // type:func
 func_8004B76C                                = 0x8004ABA8; // type:func
 Gfx_StringDrawInt                            = 0x8004AE34; // type:func
-Gfx_MapMsg_DefaultStringInfoSet              = 0x8004AF4C; // type:func
+Gfx_MapMsg_Reset                             = 0x8004AF4C; // type:func
 func_8004AF14                                = 0x8004AFB8; // type:func
-Gfx_StringSetColor_JP                        = 0x8004AFF4; // type:func
-Gfx_MapMsg_CalculateWidths                   = 0x8004B000; // type:func
+Gfx_StringColorSet_JP                        = 0x8004AFF4; // type:func
+Gfx_MapMsg_WidthsCompute                     = 0x8004B000; // type:func
 func_8004B45C                                = 0x8004B500; // type:func
 Gfx_MapMsg_StringDraw                        = 0x8004B798; // type:func
 Gfx_StringDraw_JP                            = 0x8004C064; // type:func
@@ -1139,7 +1139,7 @@ Collision_FlagsSet                           = 0x8006B330; // type:func
 Collision_FlagBitsSet                        = 0x8006B33C; // type:func
 Collision_FlagBitsClear                      = 0x8006B354; // type:func
 Collision_NearbyTriggersGet                  = 0x8006B370; // type:func
-Ipd_CollisionPtrsInit                        = 0x8006B44C; // type:func
+Collision_ChunkHeaderPtrsInit                = 0x8006B44C; // type:func
 Collision_SubcellChecksReset                 = 0x8006B4A4; // type:func
 Collision_SubcellChecksCountUpdate           = 0x8006B4F4; // type:func
 Collision_SurfaceGet                         = 0x8006B508; // type:func
@@ -1152,7 +1152,7 @@ Collision_CollidableCharasGet                = 0x8006BCB4; // type:func
 Collision_OffsetCheck                        = 0x8006BEC4; // type:func
 func_8006A42C                                = 0x8006BF3C; // type:func
 func_8006A4A8                                = 0x8006BFB8; // type:func
-Collision_TargetCharaCollidingSlowDown       = 0x8006C450; // type:func
+Collision_MoveOffsetDampen                   = 0x8006C450; // type:func
 Collision_CollStateInit                      = 0x8006C660; // type:func
 Collision_MoveDirectionCalc                  = 0x8006C6D0; // type:func
 Collision_CharaCollisionHandle               = 0x8006C854; // type:func
@@ -1402,11 +1402,11 @@ Event_PaperMapTake                           = 0x80089604; // type:func
 //------------------------------------------------------------------------
 //--- PA: 0x064E58   VA: 0x800899B8   subsegment: c, bodyprog_bgm_80087EA8
 //------------------------------------------------------------------------
-Bgm_PlayNewTrack                             = 0x800899B8; // type:func
+Bgm_PlayNewSong                              = 0x800899B8; // type:func
 Bgm_CrossfadeToTrack                         = 0x800899EC; // type:func
 Bgm_CrossfadeToSilence                       = 0x80089B38; // type:func
-func_80088048                                = 0x80089B58; // type:func
-func_800880F0                                = 0x80089C00; // type:func
+Bgm_SongStopImmediate                        = 0x80089B58; // type:func
+Bgm_SongStopFadeOut                          = 0x80089C00; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x065168   VA: 0x80089CC8   subsegment: c, bodyprog_800881B8
@@ -1486,13 +1486,13 @@ Dms_HeaderFixOffsets                         = 0x8008E4B0; // type:func
 Dms_EntryFixOffsets                          = 0x8008E554; // type:func
 Dms_SegmentGet                               = 0x8008E570; // type:func
 Dms_CharacterTransformGet                    = 0x8008E584; // type:func
-Dms_CharacterFindIdxByName                   = 0x8008E620; // type:func
+Dms_CharacterGetIdxByName                    = 0x8008E620; // type:func
 Dms_CharacterTransformGetByIdx               = 0x8008E6A0; // type:func
 Dms_CharacterKeyframeInterpolate             = 0x8008E7A8; // type:func
 Dms_FovScaleGet                              = 0x8008E8CC; // type:func
-Dms_CameraTargetGet                          = 0x8008E92C; // type:func
+Dms_CameraTargetsGet                         = 0x8008E92C; // type:func
 Dms_RotationsCompare                         = 0x8008EA64; // type:func
-Dms_CameraKeyframeInterpolate                = 0x8008EAFC; // type:func
+Dms_CameraKeyframeLerp                       = 0x8008EAFC; // type:func
 Dms_KeyframeInterpGet                        = 0x8008ECE0; // type:func
 Dms_SegmentStateGet                          = 0x8008EDD4; // type:func
 Dms_KeyframeIdxGet                           = 0x8008EE40; // type:func
@@ -2851,9 +2851,9 @@ fileStatuses                                 = 0x800ABCA4;
 //--------------------------------------------------------------------------------------
 //--- PA: 0x087164   VA: 0x800ABCC4   subsegment: .data, game_boot/background_sound_init
 //--------------------------------------------------------------------------------------
-g_BgmTaskLoadCmds                            = 0x800ABCC4; // type:u16 size:0x54
-g_BgmChannelSetTaskCmds                      = 0x800ABD18; // type:u16 size:0x54
-g_AmbientVabTaskLoadCmds                     = 0x800ABD6C; // type:u16 size:0x50
+g_BgmTaskLoad                                = 0x800ABCC4; // type:u16 size:0x54
+g_BgmChannelSetTask                          = 0x800ABD18; // type:u16 size:0x54
+g_AmbientVabTaskLoad                         = 0x800ABD6C; // type:u16 size:0x50
 
 //------------------------------------------------------------------------------
 //--- PA: 0x08725C   VA: 0x800ABDBC   subsegment: .data, game_boot/fs_chara_anim
@@ -2866,8 +2866,8 @@ D_800A998C                                   = 0x800ABE4C;
 //-----------------------------------------------------------------
 //--- PA: 0x0872FC   VA: 0x800ABE5C   subsegment: .data, events/bgm
 //-----------------------------------------------------------------
-D_800A99A0                                   = 0x800ABE60;
-g_Bgm_LayerLimits                            = 0x800ABE64;
+g_Bgm_ChannelSetProcessState                 = 0x800ABE60;
+g_Bgm_ChannelLimits                          = 0x800ABE64;
 
 //----------------------------------------------------
 //--- PA: 0x087314   VA: 0x800ABE74   subsegment: data
@@ -2980,8 +2980,8 @@ D_800A9FDC                                   = 0x800AC49C;
 g_AudioData                                  = 0x800AC4AC; // size:0x5F4
 D_800AA274                                   = 0x800AC734;
 g_Sd_ReverbDepths                            = 0x800ACAA0;
-D_800AA604                                   = 0x800ACAC4;
-g_XaItemData                                 = 0x800ACD54;
+g_Sd_SongsChannelsForLayers                  = 0x800ACAC4;
+gSDXATable                                   = 0x800ACD54;
 g_Vab_InfoTable                              = 0x800AEF68;
 
 //-------------------------------------------------------------------
@@ -2993,7 +2993,7 @@ D_800AD480                                   = 0x800AF940;
 //--- PA: 0x08ADF8   VA: 0x800AF958   subsegment: .data, text/text_draw_jp
 //------------------------------------------------------------------------
 g_StringColorId                              = 0x800AF958;
-g_Strings2dLayerIdx                          = 0x800AF95C;
+g_StringLayerIdx                             = 0x800AF95C;
 
 //----------------------------------------------------
 //--- PA: 0x08AE00   VA: 0x800AF960   subsegment: data
@@ -3063,7 +3063,7 @@ g_Player_FlexRotationY                       = 0x800B16F4;
 g_Player_FlexRotationX                       = 0x800B16F6;
 g_Player_IsInWalkToRunTransition             = 0x800B16F8;
 g_Player_DisableControl                      = 0x800B16F9;
-D_800AF216                                   = 0x800B16FA;
+g_Player_MoveStickMag                        = 0x800B16FA;
 g_Player_RockDrill_AttackType                = 0x800B16FB;
 g_Player_TargetNpcIdx                        = 0x800B1700;
 D_800AF220                                   = 0x800B1704;
@@ -3112,7 +3112,7 @@ svec0.264                                    = 0x800B2294;
 //-----------------------------------------------------------
 g_Demo_DemoId                                = 0x800B229C;
 g_Demo_RandSeed                              = 0x800B22A0;
-g_Demo_PlayFileBufferPtr                     = 0x800B22A4;
+g_Demo_PlaybackFrames                        = 0x800B22A4;
 DEMO_FILE_INFOS.30                           = 0x800B22A8;
 g_Demo_Play                                  = 0x800B22D0;
 prevScreenFade.69                            = 0x800B22D4;
@@ -3326,9 +3326,9 @@ demoLoadAttempCount                          = 0x800BF3A0;
 //----------------------------------------------------------------
 //--- PA: 0x09A848   VA: 0x800BF3A8   subsegment: .bss, events/bgm
 //----------------------------------------------------------------
-bgmLayerVolumes                              = 0x800BF3A8;
+bgmChannelsVol.0                             = 0x800BF3A8;
 D_800BCD58                                   = 0x800BF3B0;
-D_800BCD5C                                   = 0x800BF3B4;
+g_Bgm_LayersUpdated                          = 0x800BF3B4;
 
 //----------------------------------------------------------------------------
 //--- PA: 0x09A858   VA: 0x800BF3B8   subsegment: .bss, events/map_msg_display
@@ -3342,10 +3342,10 @@ g_MapMsg_AudioLoadBlock                      = 0x800BF3D2;
 D_800BCD80                                   = 0x800BF3D8;
 g_DeltaTimeCpy                               = 0x800BF3DC;
 g_ItemTriggerEvents                          = 0x800BF3E8;
-g_RadioNpcInfos                              = 0x800BF400;
-D_800BCDB0                                   = 0x800BF408;
+g_RadioNoise                                 = 0x800BF400;
+g_MapPoint                                   = 0x800BF408;
 g_ItemTriggerItemIds                         = 0x800BF418;
-D_800BCDD4                                   = 0x800BF42C;
+g_MapAreaLoadCounter                         = 0x800BF42C;
 g_MapEventData                               = 0x800BF430;
 
 //------------------------------------------------------------------
@@ -3396,8 +3396,8 @@ D_800C15D4                                   = 0x800C3C2C;
 D_800C15D8                                   = 0x800C3C30;
 D_800C15DC                                   = 0x800C3C34;
 D_800C15E0                                   = 0x800C3C38;
-XaCdLocation                                 = 0x800C3C40;
-D_800C15F0                                   = 0x800C3C48;
+g_Sd_XaCdLocation                            = 0x800C3C40;
+g_Sd_XaCdlInfo                               = 0x800C3C48;
 g_AudioPlayingIdxList                        = 0x800C3C50; // type:u16 size:0x30
 g_AudioPlayingPitchList                      = 0x800C3C80; // type:s16 size:0x30
 g_Sd_AudioWork                               = 0x800C3CB0;
@@ -3409,14 +3409,14 @@ D_800C166D                                   = 0x800C3CC5;
 D_800C166E                                   = 0x800C3CC6;
 D_800C166F                                   = 0x800C3CC7;
 g_Sd_AudioStreamingStates                    = 0x800C3CC8;
-gSDVolConfig                                 = 0x800C3CD0;
-D_800C1688                                   = 0x800C3CE0;
+g_SdVolumeConfig                             = 0x800C3CD0;
+g_Sd_XaAudioPlayTracking                     = 0x800C3CE0;
 g_Sd_VabPlayingInfo                          = 0x800C3CF0;
 g_Sd_TaskPool                                = 0x800C3D00;
 D_800C16C8                                   = 0x800C3D20;
 g_Sd_AudioType                               = 0x800C5E20;
-g_Sd_DataMoved                               = 0x800C5E24;
-g_Sd_VabLoadAttemps                          = 0x800C5E28;
+g_Sd_FileDataTransferred                     = 0x800C5E24;
+g_Sd_DataLoadAttempts                        = 0x800C5E28;
 g_Sd_VabTargetLoad                           = 0x800C5E2C;
 g_Sd_KdtTargetLoad                           = 0x800C5E30;
 g_Sd_XaTaskPending                           = 0x800C5E34;
@@ -3446,11 +3446,11 @@ g_StringPositionX1                           = 0x800C5F04;
 g_MapMsg_GlyphSprite                         = 0x800C5F10;
 D_800C5DEC                                   = 0x800C5F14;
 D_800C5DEE                                   = 0x800C5F16;
-D_800C391C                                   = 0x800C5F34;
+g_GlyphSpritePositionX                       = 0x800C5F34;
 D_800C391E                                   = 0x800C5F36;
 D_800C5E10                                   = 0x800C5F38;
 D_800C5E14                                   = 0x800C5F3C;
-D_800C38B0                                   = 0x800C5F40;
+g_MapMsg_ActiveLine                          = 0x800C5F40;
 D_800C5E19                                   = 0x800C5F41;
 D_800C5E1C                                   = 0x800C5F44;
 D_800C5E20                                   = 0x800C5F48;
@@ -3568,9 +3568,9 @@ D_800C44D0                                   = 0x800C6B28;
 D_800C44D4                                   = 0x800C6B2C;
 attackPos                                    = 0x800C6B38;
 D_800C44F0                                   = 0x800C6B48;
-g_TargetEnemyPosition                        = 0x800C6B98;
+g_Player_TargetEnemyPosition                 = 0x800C6B98;
 D_800C454C                                   = 0x800C6BA4;
-D_800C4550                                   = 0x800C6BA8;
+g_Player_PrevMoveSpeed                       = 0x800C6BA8;
 D_800C4554                                   = 0x800C6BAC;
 D_800C4556                                   = 0x800C6BAE;
 g_Player_HasMoveInput                        = 0x800C6BB0;
@@ -3579,7 +3579,7 @@ g_Player_PrevAttackReceived                  = 0x800C6BB8;
 g_Player_IsDead                              = 0x800C6BB9;
 g_Player_DisableDamage                       = 0x800C6BBA;
 g_Player_EquippedWeaponInfo                  = 0x800C6BC8;
-D_800C457C                                   = 0x800C6BD4;
+g_Player_CutsceneState                       = 0x800C6BD4;
 g_Player_IsAiming                            = 0x800C6BD6;
 g_Player_IsSteppingLeftTap                   = 0x800C6BD8;
 g_Player_IsSteppingRightTap                  = 0x800C6BDA;
@@ -3649,7 +3649,7 @@ g_Demo_PlayFileIdx                           = 0x800C6E9C;
 g_Demo_OptionsConfigBackup                   = 0x800C6EA8;
 g_Demo_PrevRandSeed                          = 0x800C6EE0;
 g_Demo_RandSeedBackup                        = 0x800C6EE4;
-g_Demo_CurFrameData                          = 0x800C6EE8;
+g_Demo_ActivePlaybackFrame                   = 0x800C6EE8;
 g_Demo_DemoStep                              = 0x800C6EEC;
 g_Demo_VideoPresentInterval                  = 0x800C6EF0;
 g_Demo_IsLoadingChunks                       = 0x800C6EF4;

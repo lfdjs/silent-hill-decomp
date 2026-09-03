@@ -29,7 +29,7 @@ void Lm_TransparentPrimSet(s_LmHeader* lmHdr, bool isTransparent) // 0x80056244
         {
             for (prim = &curMeshHdr->primitives[0]; prim < &curMeshHdr->primitives[curMeshHdr->primitiveCount]; prim++)
             {
-                prim->field_6.bits.isTransparent = isTransparent;
+                prim->bits1.bits.isTransparent = isTransparent;
             }
         }
     }
@@ -277,30 +277,30 @@ void Model_MaterialFlagsApply(s_ModelHeader* modelHdr, s32 matIdx, const s_Mater
         for (curPrim = curMeshHdr->primitives; curPrim < &curMeshHdr->primitives[curMeshHdr->primitiveCount]; curPrim++)
         {
             // No material.
-            if (curPrim->field_6.bits.materialIdx == NO_VALUE)
+            if (curPrim->bits1.bits.materialIdx == NO_VALUE)
             {
-                curPrim->field_6.bits.field_6_0 = 32;
+                curPrim->bits1.bits.field_6 = 32;
             }
 
             // Apply material flags.
-            if (curPrim->field_6.bits.materialIdx == matIdx)
+            if (curPrim->bits1.bits.materialIdx == matIdx)
             {
                 if (matFlags & MaterialFlag_0)
                 {
-                    curPrim->field_6.bits.field_6_0 = mat->field_E;
+                    curPrim->bits1.bits.field_6 = mat->field_E;
                 }
                 if (matFlags & MaterialFlag_1)
                 {
-                    curPrim->field_2 = mat->field_10 + (curPrim->field_2 - mat->field_12);
+                    curPrim->bits0 = mat->field_10 + (curPrim->bits0 - mat->field_12);
                 }
                 if (matFlags & MaterialFlag_2)
                 {
-                    field_16      = mat->field_16.u16;
-                    field_14      = mat->field_14.u16;
-                    curPrim->field_0 = field_14 + (curPrim->field_0 - field_16);
-                    curPrim->field_4 = field_14 + (curPrim->field_4 - field_16);
-                    curPrim->field_8 = field_14 + (curPrim->field_8 - field_16);
-                    curPrim->field_A = field_14 + (curPrim->field_A - field_16);
+                    field_16            = mat->field_16.u16;
+                    field_14            = mat->field_14.u16;
+                    *(u16*)&curPrim->u0 = field_14 + (*(u16*)&curPrim->u0 - field_16);
+                    *(u16*)&curPrim->u1 = field_14 + (*(u16*)&curPrim->u1 - field_16);
+                    *(u16*)&curPrim->u2 = field_14 + (*(u16*)&curPrim->u2 - field_16);
+                    *(u16*)&curPrim->u3 = field_14 + (*(u16*)&curPrim->u3 - field_16);
                 }
             }
         }
@@ -338,7 +338,7 @@ void Bone_ModelAssign(s_Bone* bone, s_LmHeader* lmHdr, s32 modelHdrIdx)
 {
     s_ModelHeader* modelHdr;
 
-    modelHdr = lmHdr->modelHdrs;
+    modelHdr                 = lmHdr->modelHdrs;
     bone->modelInfo.modelIdx = modelHdrIdx;
 
     if (lmHdr->magic == LM_HEADER_MAGIC)
@@ -349,7 +349,7 @@ void Bone_ModelAssign(s_Bone* bone, s_LmHeader* lmHdr, s32 modelHdrIdx)
 
 bool Lm_ModelFind(s_WorldObjectModel* model, s_LmHeader* lmHdr, s_WorldObjectMetadata* metadata) // 0x80056CB4
 {
-    u_Filename     sp10;
+    u_Filename     targetModelName;
     s32            modelHdrCount;
     bool           result;
     s32            i;
@@ -357,17 +357,20 @@ bool Lm_ModelFind(s_WorldObjectModel* model, s_LmHeader* lmHdr, s_WorldObjectMet
 
     result = false;
 
-    StringCopy(sp10.str, metadata->name.str);
+    StringCopy(targetModelName.str, metadata->name.str);
 
     modelHdrCount = lmHdr->modelCount;
 
     if (lmHdr->magic == LM_HEADER_MAGIC)
     {
-        for (i = 0, modelHdr = &lmHdr->modelHdrs[i]; i < modelHdrCount; i++, modelHdr++)
+        // Run through model headers.
+        for (i = 0,
+             modelHdr = &lmHdr->modelHdrs[0];
+             i < modelHdrCount; i++, modelHdr++)
         {
-            if (!COMPARE_FILENAMES(&modelHdr->name, &sp10))
+            if (!COMPARE_FILENAMES(&modelHdr->name.str, &targetModelName.str))
             {
-                result                       = true;
+                result                    = true;
                 model->modelInfo.modelIdx = i;
                 model->modelInfo.modelHdr = modelHdr;
             }

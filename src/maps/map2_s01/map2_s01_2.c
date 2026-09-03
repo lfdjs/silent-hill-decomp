@@ -120,7 +120,7 @@ void func_800CED88(void) // 0x800CED88
     #define dahliaChara (&g_SysWork.npcs[0])
     #define playerChara (&g_SysWork.playerWork.player)
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < EventState_Skip)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -424,7 +424,7 @@ void func_800CED88(void) // 0x800CED88
     {
         Dms_CharacterTransformGet(&playerChara->position, (SVECTOR3*)&playerChara->rotation, "HERO", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15);
         Dms_CharacterTransformGet(&dahliaChara->position, (SVECTOR3*)&dahliaChara->rotation, "DAHLIA", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_CameraPositionTarget, &g_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_CameraPositionTarget, &g_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_15));
         vcUserCamTarget(&g_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_CameraLookAtTarget, NULL, true);
     }

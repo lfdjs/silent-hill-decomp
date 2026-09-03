@@ -57,7 +57,7 @@ s32 MainLoop_ShouldWarmReset(void) // 0x80034108
     }
 
     // Reset frame counter if reset buttons not held.
-    if ((g_Controller0->heldBtnFlags & WARM_BOOT_COMBO_HOLD) != WARM_BOOT_COMBO_HOLD)
+    if ((g_Controller0->buttonFlags.held & WARM_BOOT_COMBO_HOLD) != WARM_BOOT_COMBO_HOLD)
     {
         g_WarmBootTimer = 0;
     }
@@ -66,11 +66,11 @@ s32 MainLoop_ShouldWarmReset(void) // 0x80034108
     {
         return ResetType_WarmBoot;
     }
-    else if (g_Controller0->heldBtnFlags == WARM_BOOT_COMBO_PRESS && (g_Controller0->clickedBtnFlags & WARM_BOOT_COMBO_PRESS))
+    else if (g_Controller0->buttonFlags.held == WARM_BOOT_COMBO_PRESS && (g_Controller0->buttonFlags.clicked & WARM_BOOT_COMBO_PRESS))
     {
         return ResetType_WarmBoot;
     }
-    else if (g_Controller0->heldBtnFlags == WARM_BOOT_COMBO_PRESS_ALT && (g_Controller0->clickedBtnFlags & ControllerFlag_Start))
+    else if (g_Controller0->buttonFlags.held == WARM_BOOT_COMBO_PRESS_ALT && (g_Controller0->buttonFlags.clicked & ControllerFlag_Start))
     {
         return ResetType_WarmBoot;
     }
@@ -108,7 +108,7 @@ void Game_WarmBoot(void) // 0x80034264
 
     Fs_QueueReset();
     Fs_QueueWaitForEmpty();
-    sd_work_init();
+    SD_InitStruct();
     Sd_AmbientSfxSet(1);
 
     while (Sd_AudioStreamingCheck() != AudioStreamingState_None)

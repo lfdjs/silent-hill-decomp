@@ -25,36 +25,36 @@ void func_800D001C(s32 arg0) // 0x800D001C
 
 void func_800D0050(void) // 0x800D0050
 {
-    s32 bgmIdx; // `e_BgmTrackIdx`
+    s32 bgmIdx; // `e_BgmCmd`
     u32 temp_v1;
 
     if (g_SavegamePtr->mapRoomIdx == 3)
     {
-        bgmIdx = BgmTrackIdx_15;
+        bgmIdx = BgmCmd_Track15;
     }
     else if (Savegame_EventFlagGet(EventFlag_481))
     {
         if (!Savegame_EventFlagGet(EventFlag_574))
         {
             Savegame_EventFlagSet(EventFlag_574);
-            bgmIdx = BgmTrackIdx_1;
+            bgmIdx = BgmCmd_UpdateTrack;
         }
         else
         {
-            bgmIdx = BgmTrackIdx_22;
+            bgmIdx = BgmCmd_Track22;
         }
     }
     else
     {
-        bgmIdx = BgmTrackIdx_14;
+        bgmIdx = BgmCmd_Track14;
     }
 
-    Bgm_TrackChange(bgmIdx);
+    Bgm_SongChange(bgmIdx);
 }
 
 void func_800D00D0(void) // 0x800D00D0
 {
-    Bgm_TrackChange(Savegame_EventFlagGet(EventFlag_M5S03_KaufmannHasMotorcycleVial) ? 40 : 35);
+    Bgm_SongChange(Savegame_EventFlagGet(EventFlag_M5S03_KaufmannHasMotorcycleVial) ? 40 : 35);
 }
 
 #include "maps/shared/sharedFunc_800D0110_7_s00.h" // 0x800D0110
@@ -118,7 +118,7 @@ void func_800D0B64(void) // 0x800D0B64
     #define lisaChara g_SysWork.npcs[0]
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < EventState_Skip)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -337,7 +337,7 @@ void func_800D0B64(void) // 0x800D0B64
             Dms_CharacterTransformGet(&lisaChara.position, &lisaChara.rotation, "LISA", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPosition, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAt, NULL, true);
 
@@ -453,7 +453,7 @@ void func_800D1604(void) // 0x800D1604
 
     GsOUT_PACKET_P = ptr->field_8;
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip)
     {
         if (g_SysWork.sysStateSteps[0] >= 3)
         {

@@ -297,7 +297,7 @@ void Event_ScreenFadeCmd(e_ScreenFadeCmd cmd, bool fadeOut, e_ScreenFadeType fad
 
 const RECT D_8002AB10 =  // 0x8002AB10 .rodata
 {
-    SCREEN_POSITION_X(100.0f), 256,
+    SCREEN_WIDTH, 256,
     (SCREEN_WIDTH / 5) * 3, SCREEN_HEIGHT
 };
 
@@ -869,8 +869,8 @@ void Event_DisplayBgTexture(e_FsFile texFileIdx, q19_12 fadeTimestep0, q19_12 fa
         case 4:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
 
-            if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
-                                                 g_GameWorkPtr->config.controllerConfig.cancel))
+            if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
+                                                      g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 SysWork_StateStepIncrement(1);
             }
@@ -985,14 +985,14 @@ void Event_DisplayMapMsgWithDimmedBg(e_FsFile texFileIdx, q19_12 fadeTimestep0, 
         case EventStates_4:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
 
-            if (mapMsgIdx0 != MapMsgCode_None)
+            if (mapMsgIdx0 != MapMsgReturnCode_None)
             {
                 Event_DisplayMapMsg(false, mapMsgIdx0, 0, 0, 0, true);
                 break;
             }
 
             // Check for "continue" input.
-            if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                   g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 SysWork_StateStepIncrement(1);
@@ -1144,7 +1144,7 @@ void Event_CommonItemTake(u32 pickupType, e_EventFlag eventFlagIdx) // 0x800879F
 void Event_PaperMapTake(s32 paperMapFlagIdx, e_EventFlag eventFlagIdx, s32 mapMsgIdx) // 0x80087AF4
 {
     static const RECT RECT = {
-        SCREEN_POSITION_X(100.0f), 256,
+        SCREEN_WIDTH, 256,
         SCREEN_WIDTH / 2, SCREEN_HEIGHT
     };
 

@@ -32,16 +32,18 @@ typedef enum _MapMsgIdx
     MapMsgIdx_NowMaking         = 14  /** @unused? */
 } e_MapMsgIdx;
 
-typedef enum _MapMsgCode
+/** @brief Map message return codes. Returned by `Gfx_MapMsg_StringDraw`. */
+typedef enum _MapMsgReturnCode
 {
-    MapMsgCode_None        = 0,
-    MapMsgCode_Select2     = 2,
-    MapMsgCode_Select3     = 3,
-    MapMsgCode_Select4     = 4,
-    MapMsgCode_DisplayAll  = 20,
-    MapMsgCode_SetByT      = 88,
-    MapMsgCode_AlignCenter = 99
-} e_MapMsgCode;
+    MapMsgReturnCode_None        = 0,
+    MapMsgReturnCode_Terminate   = 1,
+    MapMsgReturnCode_Select2     = 2,
+    MapMsgReturnCode_Select3     = 3,
+    MapMsgReturnCode_Select4     = 4,
+    MapMsgReturnCode_DisplayAll  = 20,
+    MapMsgReturnCode_SetByT      = 88,
+    MapMsgReturnCode_AlignCenter = 99
+} e_MapMsgReturnCode;
 
 /** @brief Map message states.
  *
@@ -72,13 +74,14 @@ typedef struct _MapMsgSelect
 
 extern s_MapMsgSelect g_MapMsg_Select;
 
+// 2 flags?
 extern u8 g_MapMsg_AudioLoadBlock;
 
 extern s8 g_MapMsg_SelectCancelIdx;
 
 s32 Gfx_MapMsg_Draw(s32 mapMsgIdx);
 
-s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* arg1);
+s32 Gfx_MapMsg_SelectionUpdate(u8 mapMsgIdx, s32* displayLength);
 
 /** @unused */
 void func_80036E48(u16* arg0, s16* arg1);

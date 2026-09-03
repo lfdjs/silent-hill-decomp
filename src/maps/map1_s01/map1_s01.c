@@ -25,11 +25,11 @@ void Map_RoomBgmInit(bool arg0) // 0x800D6FE4
 
     if (g_SavegamePtr->mapRoomIdx == 23)
     {
-        bgmFlags = BgmFlag_Layer5;
+        bgmFlags = BgmFlag_Layer6;
         if (Savegame_EventFlagGet(EventFlag_71) && Savegame_EventFlagGet(EventFlag_72))
         {
-            bgmFlags = BgmFlag_Layer1 | BgmFlag_Layer2 | BgmFlag_Layer3 | BgmFlag_Layer4 |
-                       BgmFlag_Layer5 | BgmFlag_Layer6 | BgmFlag_Layer7 |
+            bgmFlags = BgmFlag_Layer2 | BgmFlag_Layer3 | BgmFlag_Layer4 | BgmFlag_Layer5 |
+                       BgmFlag_Layer6 | BgmFlag_Layer7 | BgmFlag_Layer8 |
                        BgmFlag_KeepAlive;
         }
     }
@@ -38,7 +38,7 @@ void Map_RoomBgmInit(bool arg0) // 0x800D6FE4
         bgmFlags = D_800DCA04[g_SavegamePtr->mapRoomIdx];
     }
 
-    Bgm_Update(bgmFlags, Q12(0.1f), &D_800DC9FC);
+    Bgm_LayersUpdate(bgmFlags, Q12(0.1f), &D_800DC9FC);
 }
 
 void GameBoot_LoadScreen_StageString(void) {}
@@ -162,7 +162,7 @@ void func_800D7308(void)
     g_SysWork.bgmStatusFlags |= BgmStatusFlag_ApplyMute;
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < EventState_Skip)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -335,7 +335,7 @@ void MapEvent_PianoPuzzleInteract(void) // 0x800D7864
 
     g_SysWork.bgmStatusFlags |= BgmStatusFlag_ApplyMute;
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= EventState_MedallionCutsceneStart && g_SysWork.sysStateSteps[0] < EventState_MedallionCutsceneEnd)
     {
         ScreenFade_ResetTimestep();
@@ -542,16 +542,16 @@ void PianoPuzzle_Control(bool playNote) // 0x800D7F18
         return;
     }
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
     {
         SysWork_StateStepIncrement(0);
         return;
     }
 
-    g_PianoCursorX += (g_Controller0->sticks_24.sticks_0.leftX * 16384) / 75;
+    g_PianoCursorX += (g_Controller0->normalizedSticks.sticks_0.leftX * Q12(4.0f)) / 75;
     g_PianoCursorX  = CLAMP_RANGE(g_PianoCursorX, Q12(-89.0f), Q12(85.0f));
 
-    g_PianoCursorY += (g_Controller0->sticks_24.sticks_0.leftY * 16384) / 75;
+    g_PianoCursorY += (g_Controller0->normalizedSticks.sticks_0.leftY * Q12(4.0f)) / 75;
     g_PianoCursorY  = CLAMP_RANGE(g_PianoCursorY, Q12(-71.0f), Q12(84.0f));
 
     Game_TimerUpdate();
@@ -560,7 +560,7 @@ void PianoPuzzle_Control(bool playNote) // 0x800D7F18
     cursorY = FP_FROM(g_PianoCursorY, Q12_SHIFT) + 8;
     Gfx_CursorDraw(cursorX, cursorY, 8, 8, 0, 64, 32, 32, 128, 192, 0, 12);
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
     {
         if (FP_FROM(g_PianoCursorY, Q12_SHIFT) >= 34)
         {
@@ -789,7 +789,7 @@ void func_800D87C0(void) // 0x800D87C0
     s_WorldObjectPose* objTobira00;
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < EventState_Skip)
     {
         if ( g_SysWork.sysStateSteps[0]  < 4)
@@ -980,7 +980,7 @@ void func_800D87C0(void) // 0x800D87C0
             Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "CAT", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_16);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_CameraPositionTarget, &g_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_16));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_CameraPositionTarget, &g_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_16));
         vcUserCamTarget(&g_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_CameraLookAtTarget, NULL, true);
     }

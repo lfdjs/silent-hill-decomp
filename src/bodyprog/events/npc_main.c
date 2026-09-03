@@ -18,7 +18,7 @@
 
 void Savegame_EnemyStateUpdate(s_SubCharacter* chara) // 0x80037DC4
 {
-    if (g_SavegamePtr->gameDifficulty <= GameDifficulty_Normal || Rng_RandQ12() >= Q12_ANGLE(108.0f))
+    if (g_SavegamePtr->gameDifficulty <= GameDifficulty_Normal || Rng_RandQ12() >= Q12(0.3f))
     {
         g_SavegamePtr->mapEnemyStates[g_SavegamePtr->mapIdx] &= ~(1 << chara->field_40);
     }
@@ -41,8 +41,9 @@ void func_80037E78(s_SubCharacter* chara) // 0x80037E78
     s8  idx;
     s32 cond;
 
-    // TODO: Strange `chara->headingAngle` access.
-    if (chara->health <= Q12(0.0f) && (*(s32*)&chara->headingAngle & 0x600000) == 0x200000)
+    // @hack Odd check for `(chara->flags & (CharaFlag_Damaged | CharaFlag_Dead)) == CharaFlag_Damaged`.
+    if (chara->health <= Q12(0.0f) &&
+        (*(s32*)&chara->headingAngle & ((CharaFlag_Damaged | CharaFlag_Dead) << 16)) == (CharaFlag_Damaged << 16))
     {
         idx = chara->attackReceived;
         if (idx < 39) // TODO: What weapon attack?
@@ -57,6 +58,9 @@ void func_80037E78(s_SubCharacter* chara) // 0x80037E78
 
 void Game_NpcRoomInitSpawn(bool cond) // 0x80037F24
 {
+    #define GET_NPC_FLAG(flagId) \
+        ((1 << (flagId)) - 1)
+
     s_CollisionSurface surface;
     s32                groupCharaId0;
     s32                groupCharaId1;
@@ -73,7 +77,7 @@ void Game_NpcRoomInitSpawn(bool cond) // 0x80037F24
 
     if (cond == false)
     {
-        func_80037154();
+        Game_RadioNoiseReset();
 
         if (g_MapOverlayHdr.npcSpawnEvent != NULL)
         {
@@ -86,7 +90,7 @@ void Game_NpcRoomInitSpawn(bool cond) // 0x80037F24
 
     for (i = 0; i < 32 && g_VBlanks < 4; i++, curCharaSpawn++)
     {
-        if (g_SysWork.npcFlags == ((1 << g_SysWork.npcFlagsId) - 1)) // TODO: Macro for this check?
+        if (g_SysWork.npcFlags == GET_NPC_FLAG(g_SysWork.npcFlagId))
         {
             break;
         }
@@ -122,11 +126,9 @@ void Game_NpcRoomInitSpawn(bool cond) // 0x80037F24
             g_SysWork.npcs[npcIdx].model.stateStep    = curCharaSpawn->flags;
             g_SysWork.npcs[npcIdx].position.vx        = curCharaSpawn->positionX;
             g_SysWork.npcs[npcIdx].position.vz        = curCharaSpawn->positionZ;
-
             Collision_SurfaceGet(&surface, curCharaSpawn->positionX, curCharaSpawn->positionZ);
-
-            g_SysWork.npcs[npcIdx].position.vy = surface.groundHeight;
-            g_SysWork.npcs[npcIdx].rotation.vy = Q8_TO_Q12(curCharaSpawn->rotationY);
+            g_SysWork.npcs[npcIdx].position.vy        = surface.groundHeight;
+            g_SysWork.npcs[npcIdx].rotation.vy        = Q8_TO_Q12(curCharaSpawn->rotationY);
 
             SET_FLAG(&g_SysWork.npcFlags, npcIdx);
             SET_FLAG(g_SysWork.field_228C, i);
@@ -135,6 +137,8 @@ void Game_NpcRoomInitSpawn(bool cond) // 0x80037F24
             chara->model.anim.flags |= AnimFlag_Visible;
         }
     }
+
+    #undef NPC_FLAG_GET
 }
 
 void Game_NpcUpdate(void) // 0x80038354
@@ -144,8 +148,8 @@ void Game_NpcUpdate(void) // 0x80038354
     {
         /* 0x0 */ s8      bitIdx;
                   // 3 bytes of padding.
-        /* 0x4 */ q19_12  distanceToNpc;
-        /* 0x8 */ VECTOR3 position; /** Q19.12 */
+        /* 0x4 */ s32     distanceToNpc; /** Squared integer. */
+        /* 0x8 */ VECTOR3 position;      /** Q19.12 */
     } s_CloseNpcInfo;
 
     s_CloseNpcInfo  closestNpcInfos[3];
@@ -163,12 +167,12 @@ void Game_NpcUpdate(void) // 0x80038354
     s32             var_v1_3;
     s32             closeNpcInfoIdx1;
     s32             balance;
-    s8              temp_s1;
+    s8              idx;
     s32             closeNpcInfoIdx;
     s32             bitIdx;
-    q20_12          curDistToNpc;
+    u32             curDistToNpc;
     u8              temp_a2;
-    q20_12          distToNpcCpy;
+    u32             distToNpcCpy;
     s32             l;
     s32             animDataIdx;
     s32             temp2;
@@ -222,7 +226,7 @@ void Game_NpcUpdate(void) // 0x80038354
     for (j = 0; j < ARRAY_SIZE(closestNpcInfos); j++)
     {
         closestNpcInfos[j].bitIdx        = NO_VALUE;
-        closestNpcInfos[j].distanceToNpc = Q12(0.25f);
+        closestNpcInfos[j].distanceToNpc = SQUARE(32);
         closestNpcInfos[j].position.vy   = Q12(0.0f);
     }
 
@@ -241,7 +245,7 @@ void Game_NpcUpdate(void) // 0x80038354
         // Only process enemy NPC for radio interference.
         if (curNpc->model.charaId <= CHARA_LAST_ENEMY_ID)
         {
-            // Compute distance from player to NPC.
+            // Compute square integer distance from player to NPC.
             curDistToNpc = Q12_SQUARE_PRECISE(Q12_TO_Q6(curNpc->position.vx) - posXShift6) +
                            Q12_SQUARE_PRECISE(Q12_TO_Q6(curNpc->position.vz) - posZShift6);
 
@@ -250,7 +254,7 @@ void Game_NpcUpdate(void) // 0x80038354
             if (g_MapOverlayHdr.mapInfo->flags & MapFlag_Interior)
             {
                 isLowVisInterior = (g_MapOverlayHdr.mapInfo->flags & (MapFlag_OneActiveChunk |
-                                                                         MapFlag_TwoActiveChunks)) > 0;
+                                                                      MapFlag_TwoActiveChunks)) > 0;
             }
 
             // Run through ???
@@ -268,16 +272,16 @@ void Game_NpcUpdate(void) // 0x80038354
                 if (isLowVisInterior)
                 {
                     // Check X axis.
-                    s32 playerCell = (g_SysWork.playerWork.player.position.vx + (Q12(CHUNK_CELL_SIZE) * 4)) / Q12(CHUNK_CELL_SIZE);
-                    s32 npcCell    = (curNpc->position.vx                     + (Q12(CHUNK_CELL_SIZE) * 4)) / Q12(CHUNK_CELL_SIZE);
+                    s32 playerCell = (g_SysWork.playerWork.player.position.vx + (Q12(CHUNK_SIZE) * 4)) / Q12(CHUNK_SIZE);
+                    s32 npcCell    = (curNpc->position.vx                     + (Q12(CHUNK_SIZE) * 4)) / Q12(CHUNK_SIZE);
                     if (npcCell != playerCell)
                     {
                         continue;
                     }
 
                     // Check Z axis.
-                    playerCell = (g_SysWork.playerWork.player.position.vz + (Q12(CHUNK_CELL_SIZE) * 4)) / Q12(CHUNK_CELL_SIZE);
-                    npcCell    = (curNpc->position.vz                     + (Q12(CHUNK_CELL_SIZE) * 4)) / Q12(CHUNK_CELL_SIZE);
+                    playerCell = (g_SysWork.playerWork.player.position.vz + (Q12(CHUNK_SIZE) * 4)) / Q12(CHUNK_SIZE);
+                    npcCell    = (curNpc->position.vz                     + (Q12(CHUNK_SIZE) * 4)) / Q12(CHUNK_SIZE);
                     if (npcCell != playerCell)
                     {
                         continue;
@@ -303,8 +307,8 @@ void Game_NpcUpdate(void) // 0x80038354
 
             // Unload distant NPC to avoid drawing.
             distToNpcCpy = curDistToNpc;
-            if (distToNpcCpy > ((!isLowVisInterior && curNpc->health < Q12(0.0f)) ? SQUARE(24) : // Approx. `Q12(0.15f)`.
-                                                                                    SQUARE(40))) // Approx. `Q12(0.4f)`.
+            if (distToNpcCpy > ((!isLowVisInterior && curNpc->health < Q12(0.0f)) ? SQUARE(24) :
+                                                                                    SQUARE(40)))
             {
                 curNpc->model.charaId = Chara_None;
 
@@ -314,9 +318,9 @@ void Game_NpcUpdate(void) // 0x80038354
             }
 
             // Set NPC visibility.
-            if ((g_SysWork.field_2388.field_154.effectsInfo.field_0.s_field_0.field_0 & 0x2 && curDistToNpc > SQUARE(15)) || // Approx. `Q12(0.055f)`.
+            if ((g_SysWork.field_2388.field_154.effectsInfo.field_0.s_field_0.field_0 & 0x2 && curDistToNpc > SQUARE(15)) ||
                 (!(g_SysWork.field_2388.field_154.effectsInfo.field_0.s_field_0.field_0 & 0x2) &&
-                    Camera_Distance2dGet(&curNpc->position) > SQUARE(15))) // Approx. `Q12(0.055f)`.
+                    Camera_Distance2dGet(&curNpc->position) > SQUARE(15)))
             {
                 curNpc->model.anim.flags &= ~AnimFlag_Visible;
             }
@@ -365,9 +369,9 @@ void Game_NpcUpdate(void) // 0x80038354
 
     idxBits = 0;
 
-    for (l = 0; l < ARRAY_SIZE(g_RadioNpcInfos); l++)
+    for (l = 0; l < ARRAY_SIZE(g_RadioNoise); l++)
     {
-        closeNpcInfoIdx1 = g_RadioNpcInfos[l].idx;
+        closeNpcInfoIdx1 = g_RadioNoise[l].idx;
         if (closeNpcInfoIdx1 == NO_VALUE)
         {
             closeNpcInfoIdx0 = NO_VALUE;
@@ -379,22 +383,22 @@ void Game_NpcUpdate(void) // 0x80038354
 
         if (closeNpcInfoIdx0 >= 0)
         {
-            g_RadioNpcInfos[l].closeNpcInfoIdx = closeNpcInfoIdx0;
-            idxBits                           |= 1 << closeNpcInfoIdx1;
+            g_RadioNoise[l].closeNpcInfoIdx = closeNpcInfoIdx0;
+            idxBits                        |= 1 << closeNpcInfoIdx1;
         }
         else
         {
-            g_RadioNpcInfos[l].idx = NO_VALUE;
+            g_RadioNoise[l].idx = NO_VALUE;
         }
     }
 
-    for (l = 0; l < ARRAY_SIZE(g_RadioNpcInfos); l++)
+    for (l = 0; l < ARRAY_SIZE(g_RadioNoise); l++)
     {
-        temp_s1 = g_RadioNpcInfos[l].idx;
-        if (temp_s1 == NO_VALUE)
+        idx = g_RadioNoise[l].idx;
+        if (idx == NO_VALUE)
         {
             closeNpcInfoIdx = func_800382EC();
-            if (closeNpcInfoIdx != temp_s1)
+            if (closeNpcInfoIdx != idx)
             {
                 bitIdx = closestNpcInfos[closeNpcInfoIdx].bitIdx;
             }
@@ -403,16 +407,16 @@ void Game_NpcUpdate(void) // 0x80038354
                 bitIdx = NO_VALUE;
             }
 
-            g_RadioNpcInfos[l].closeNpcInfoIdx = closeNpcInfoIdx;
-            g_RadioNpcInfos[l].idx = bitIdx;
+            g_RadioNoise[l].closeNpcInfoIdx = closeNpcInfoIdx;
+            g_RadioNoise[l].idx             = bitIdx;
         }
     }
 
-    for (l = 0; l < ARRAY_SIZE(g_RadioNpcInfos); l++)
+    for (l = 0; l < ARRAY_SIZE(g_RadioNoise); l++)
     {
-        if (g_RadioNpcInfos[l].prevIdx == NO_VALUE)
+        if (g_RadioNoise[l].prevIdx == NO_VALUE)
         {
-            if (g_RadioNpcInfos[l].idx >= 0)
+            if (g_RadioNoise[l].idx >= 0)
             {
                 SD_Call((u16)(Sfx_RadioInterferenceLoop + l));
             }
@@ -426,9 +430,9 @@ void Game_NpcUpdate(void) // 0x80038354
                 var_s3 = 1;
             }
 
-            if (g_RadioNpcInfos[l].idx >= 0)
+            if (g_RadioNoise[l].idx >= 0)
             {
-                closeNpcInfo = &closestNpcInfos[g_RadioNpcInfos[l].closeNpcInfoIdx];
+                closeNpcInfo = &closestNpcInfos[g_RadioNoise[l].closeNpcInfoIdx];
                 balance      = Vc_StereoBalanceGet(&closeNpcInfo->position);
 
                 var_v1_3 = SquareRoot12(closeNpcInfo->distanceToNpc << Q12_SHIFT) >> 8;
@@ -446,7 +450,7 @@ void Game_NpcUpdate(void) // 0x80038354
             }
         }
 
-        g_RadioNpcInfos[l].prevIdx = g_RadioNpcInfos[l].idx;
+        g_RadioNoise[l].prevIdx = g_RadioNoise[l].idx;
     }
 }
 
@@ -488,7 +492,7 @@ bool Math_Distance2dCheck(const VECTOR3* from, const VECTOR3* to, q19_12 radius)
 /** @brief Computes the squared 2D distance on the XZ plane from the reference position to the camera.
  *
  * @param pos Reference position (Q19.12).
- * @return 2D distance to the camera. TODO: Does it stay in Q25.6?
+ * @return 2D squared integer distance to the camera.
  */
 static s32 Camera_Distance2dGet(const VECTOR3* pos) // 0x80038B44
 {

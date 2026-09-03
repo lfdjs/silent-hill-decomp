@@ -24,16 +24,16 @@ void Map_RoomBgmInit(bool arg0) // 0x800D77F8
 
     if (g_SavegamePtr->mapRoomIdx == 23)
     {
-        bgmFlags = BgmFlag_Layer5;
+        bgmFlags = BgmFlag_Layer6;
         if (Savegame_EventFlagGet(EventFlag_71) && Savegame_EventFlagGet(EventFlag_72))
         {
-            bgmFlags = BgmFlag_Layer1 |
-                    BgmFlag_Layer2 |
+            bgmFlags = BgmFlag_Layer2 |
                     BgmFlag_Layer3 |
                     BgmFlag_Layer4 |
                     BgmFlag_Layer5 |
                     BgmFlag_Layer6 |
                     BgmFlag_Layer7 |
+                    BgmFlag_Layer8 |
                     BgmFlag_KeepAlive;
         }
     }
@@ -42,7 +42,7 @@ void Map_RoomBgmInit(bool arg0) // 0x800D77F8
         bgmFlags = D_800DCC54[g_SavegamePtr->mapRoomIdx];
     }
 
-    Bgm_Update(bgmFlags, Q12(0.1f), &D_800DCC4C);
+    Bgm_LayersUpdate(bgmFlags, Q12(0.1f), &D_800DCC4C);
 }
 
 void GameBoot_LoadScreen_StageString(void) {}
@@ -420,7 +420,7 @@ void func_800D8354(void) // 0x800D8354
         case 4:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
 
-            if (g_Controller0->clickedBtnFlags & (g_GameWorkPtr->config.controllerConfig.enter |
+            if (g_Controller0->buttonFlags.clicked & (g_GameWorkPtr->config.controllerConfig.enter |
                                                   g_GameWorkPtr->config.controllerConfig.cancel))
             {
                 SysWork_StateStepIncrement(0);
@@ -458,7 +458,7 @@ void func_800D85A4(void) // 0x800D85A4
 void func_800D85D8(void) // 0x800D85D8
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 3 && g_SysWork.sysStateSteps[0] < 5)
     {
         ScreenFade_ResetTimestep();
@@ -542,7 +542,7 @@ void func_800D85D8(void) // 0x800D85D8
 void func_800D8948(void) // 0x800D8948
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 4 && g_SysWork.sysStateSteps[0] < 6)
     {
         ScreenFade_ResetTimestep();
@@ -867,7 +867,7 @@ void Map_WorldObjectsUpdate(void)
         if (D_800E1180 == 0)
         {
             D_800E1180 = 1;
-            Sd_PlaySfx(Sfx_Unk1359, Q8(0.0f), Q8(29.0f / 32.0f));
+            Sd_SfxPlay(Sfx_Unk1359, Q8(0.0f), Q8(29.0f / 32.0f));
         }
     }
 
@@ -876,7 +876,7 @@ void Map_WorldObjectsUpdate(void)
         if (D_800E1180 == 1)
         {
             D_800E1180 = 2;
-            Sd_PlaySfx(Sfx_Unk1359, Q8(0.0f), Q8(27.0f / 32.0f));
+            Sd_SfxPlay(Sfx_Unk1359, Q8(0.0f), Q8(27.0f / 32.0f));
         }
     }
 

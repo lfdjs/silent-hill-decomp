@@ -4,21 +4,52 @@ meta:
   file-extension: ipd
   endian: le
   encoding: ASCII
+  imports:
+    - lm
 
 doc: |
   IPD is the 3D model format containing instanced map models and collision data
   used in Silent Hill (PSX).
+  
+  Local map prop models are stored in an embedded PLM (LM) block, while global
+  props reference models in a separate `***_GLB.PLM` file.
+
+  The first few meshes of the embedded PLM contain texture names and are
+  skipped.
 
 seq:
   - id: header
-    type: ipd_header
+    type: header
+
+instances:
+  collision:
+    pos: 0x54
+    type: collision
+
+  lm:
+    pos: header.lm_header_offset
+    type: lm(header.lm_header_offset)
+
+  model_infos:
+    pos: header.model_infos_offset
+    type: model_info
+    repeat: expr
+    repeat-expr: header.model_count
+
+  model_buffers:
+    pos: header.model_buffers_offset
+    type: model_buffer
+    repeat: expr
+    repeat-expr: header.model_buffer_count
+
+  model_order_list:
+    pos: header.model_order_list_offset
+    type: u1
+    repeat: expr
+    repeat-expr: header.model_order_count
 
 types:
-  # ===
-  # IPD
-  # ===
-
-  ipd_header:
+  header:
     seq:
       - id: magic
         contents: [0x14]
@@ -46,7 +77,7 @@ types:
 
       - size: 9
 
-      - id: model_info_offset
+      - id: model_infos_offset
         type: u4
 
       - id: model_buffers_offset
@@ -61,27 +92,7 @@ types:
       - id: model_order_list_offset
         type: u4
 
-      - id: collision_data
-        type: ipd_collision_data
-
-    instances:
-      lm_header:
-        pos: lm_header_offset
-        type: lm_header(lm_header_offset)
-
-      model_infos:
-        pos: model_info_offset
-        type: ipd_model_info
-        repeat: expr
-        repeat-expr: model_count
-
-      model_buffers:
-        pos: model_buffers_offset
-        type: ipd_model_buffer
-        repeat: expr
-        repeat-expr: model_buffer_count
-
-  ipd_model_info:
+  model_info:
     seq:
       - id: is_global_plm
         type: u1
@@ -95,7 +106,7 @@ types:
       - id: model_header_offset
         type: u4
 
-  ipd_model_buffer:
+  model_buffer:
     seq:
       - id: model_instance_count
         type: u1
@@ -125,304 +136,32 @@ types:
 
       - id: field_10_offset
         type: u4
-        doc: Q7.8
+        doc: Q7.8.
 
       - id: subcell_positions_offset
         type: u4
-        doc: Q7.8
-
-  ipd_collision_data:
-    seq:
-      - id: position_x
-        type: s4
-        doc: Q23.8
-
-      - id: position_z
-        type: s4
-        doc: Q23.8
-
-      - id: split_vertex_count
-        type: b8
-
-      - id: surface_count
-        type: b8
-
-      - id: subcell_count
-        type: b8
-
-      - id: ptr_18_count
-        type: b8
-
-      - id: split_vertices_offset
-        type: u4
-
-      - id: surfaces_offset
-        type: u4
-
-      - id: subcells_offset
-        type: u4
-
-      - id: ptrs_18_offset
-        type: u4
-
-      - id: subcell_size
-        type: s2
-
-      - id: subcell_x_count
-        type: u1
-
-      - id: subcell_z_count
-        type: u1
-
-      - id: subcell_ranges_offset
-        type: u4
-
-      - id: field_24
-        type: u2
-
-      - id: field_26
-        type: u2
-
-      - id: ptr_28
-        type: u4
-
-      - id: ptr_2c
-        type: u4
-
-      - id: subcell_check_count
-        type: u1
-
-      - size: 3
-
-      - id: field_34
-        size: 256
+        doc: Q7.8.
 
     instances:
-      split_vertices:
-        pos: split_vertices_offset
-        type: svector_3
+      model_instances:
+        pos: model_instances_offset
+        type: model_instance
         repeat: expr
-        repeat-expr: split_vertex_count
-        doc: TODO Wrong offset.
+        repeat-expr: model_instance_count
+        doc: TODO Offset is wrong? Add header.model_buffers_offset?
 
-      surfaces:
-        pos: surfaces_offset
-        type: ipd_coll_surface
-        repeat: expr
-        repeat-expr: surface_count
-        doc: Q7.8. TODO Wrong offset.
-
-      subcells:
-        pos: subcells_offset
-        type: ipd_subcell
-        repeat: expr
-        repeat-expr: subcell_count
-        doc: TODO Wrong offset.
-
-      ptrs_18:
-        pos: ptrs_18_offset
-        type: ipd_coll_data_18
-        repeat: expr
-        repeat-expr: ptr_18_count
-        doc: TODO Wrong offset.
-
-      subcell_ranges:
-        pos: subcell_ranges_offset
-        type: ipd_coll_subcell_range
-        repeat: expr
-        repeat-expr: subcell_size
-        doc: TODO Wrong offset. Also which field has the count??
-
-  # =========
-  # COLLISION
-  # =========
-
-  ipd_coll_surface:
+  model_instance:
     seq:
-      - id: field_0
-        type: s2
-        doc: Q7.8.
-
-      - id: field_2
-        type: s2
-        doc: Q7.8.
-
-      - id: field_4
-        type: s2
-        doc: Q7.8.
-
-      - id: ground_type
-        type: b5
-
-      - id: disable_height
-        type: b3
-
-      - id: field_5_8
-        type: b3
-
-      - id: field_6_11
-        type: b4
-
-      - id: tilt_angle_x
-        type: s2
-        doc: Q7.8.
-
-      - id: tilt_angle_z
-        type: s2
-        doc: Q7.8.
-
-  ipd_subcell:
-    seq:
-      - id: field_0_0
-        type: b14
-        doc: Q7.8.
-
-      - id: field_0_14
-        type: b2
-
-      - id: field_2_0
-        type: b14
-        doc: Q7.8.
-
-      - id: field_2_14
-        type: b2
-
-      - id: field_4
-        type: s2
-        doc: Q7.8.
-
-      - id: split_vertex_idx_0
-        type: u1
-
-      - id: split_vertex_idx_1
-        type: u1
-
-      - id: surface_idx_0
-        type: u1
-
-      - id: surface_idx_1
-        type: u1
-
-  ipd_coll_data_18:
-    seq:
-      - id: ground_type
-        type: b5
-
-      - id: disable_height
-        type: b3
-
-      - id: field_0_8
-        type: b4
-
-      - id: field_0_12
-        type: b3
-
-      - id: field_0_15
-        type: b1
-
-      - id: offset
-        type: svector_3
-        doc: Q7.8.
-
-      - id: field_8
-        type: u2
-        doc: Q7.8.
-
-  ipd_coll_subcell_range:
-    seq:
-      - id: field_0
-        type: s2
-
-      - id: field_2
-        type: s2
-  
-  # ========
-  # PLM (LM)
-  # ========
-
-  lm_header:
-    params:
-      - id: base_offset
+      - id: model_header_offset
         type: u4
 
-    seq:
-      - id: magic
-        contents: [0x30]
-
-      - id: version
-        type: u1
-
-      - id: is_loaded
-        type: u1
-
-      - id: material_count
-        type: u1
-
-      - id: materials_offset
-        type: u4
-
-      - id: model_count
-        type: u1
-
-      - size: 3
-
-      - id: model_headers_offset
-        type: u4
-
-      - id: model_order_offset
-        type: u4
+      - id: transform
+        type: matrix
 
     instances:
-      materials:
-        pos: base_offset + materials_offset
-        type: material
-        repeat: expr
-        repeat-expr: material_count
-
-      models:
-        pos: base_offset + model_headers_offset
-        type: model_header(base_offset)
-        repeat: expr
-        repeat-expr: model_count
-
-      model_order:
-        pos: base_offset + model_order_offset
-        type: u1
-        repeat: expr
-        repeat-expr: model_count
-
-  material:
-    seq:
-      - id: name
-        type: strz
-        size: 8
-
-      - id: offset_texture
-        type: u4
-
-      - id: field_c
-        type: u1
-
-      - id: unk_d
-        type: u1
-
-      - id: field_e
-        type: u1
-
-      - id: field_f
-        type: u1
-
-      - id: field_10
-        type: u2
-
-      - id: field_12
-        type: u2
-
-      - id: field_14
-        type: u2
-
-      - id: field_16
-        type: u2
+      model_headers:
+        type: model_header(model_header_offset)
+        doc: TODO Doesn't reveal correct data.
 
   model_header:
     params:
@@ -523,9 +262,245 @@ types:
         repeat: expr
         repeat-expr: normal_count
 
-  # ======
-  # Common
-  # ======
+  collision:
+    seq:
+      - id: position_x
+        type: s4
+        doc: Q23.8
+
+      - id: position_z
+        type: s4
+        doc: Q23.8
+
+      - id: split_vertex_count
+        type: b8
+
+      - id: surface_count
+        type: b8
+
+      - id: subcell_count
+        type: b8
+
+      - id: ptr_18_count
+        type: b8
+
+      - id: split_vertices_offset
+        type: u4
+
+      - id: surfaces_offset
+        type: u4
+
+      - id: subcells_offset
+        type: u4
+
+      - id: ptrs_18_offset
+        type: u4
+
+      - id: subcell_size
+        type: s2
+
+      - id: subcell_x_count
+        type: u1
+
+      - id: subcell_z_count
+        type: u1
+
+      - id: subcell_ranges_offset
+        type: u4
+
+      - id: field_24
+        type: u2
+
+      - id: field_26
+        type: u2
+
+      - id: ptr_28
+        type: u4
+
+      - id: ptr_2c
+        type: u4
+
+      - id: subcell_check_count
+        type: u1
+
+      - size: 3
+
+      - id: subcell_check_idxs
+        size: 256
+        doc: Static pool of `u1` with size `subcell_check_count`.
+
+    instances:
+      split_vertices:
+        pos: split_vertices_offset
+        type: svector_3
+        repeat: expr
+        repeat-expr: split_vertex_count
+        doc: Q3.12? TODO Wrong offset?
+
+      surfaces:
+        pos: surfaces_offset
+        type: collision_surface
+        repeat: expr
+        repeat-expr: surface_count
+        doc: TODO Wrong offset?
+
+      subcells:
+        pos: subcells_offset
+        type: collision_subcell
+        repeat: expr
+        repeat-expr: subcell_count
+        doc: TODO Wrong offset?
+
+      ptrs_18:
+        pos: ptrs_18_offset
+        type: collision_18
+        repeat: expr
+        repeat-expr: ptr_18_count
+        doc: TODO Wrong offset?
+
+      subcell_ranges:
+        pos: subcell_ranges_offset
+        type: collision_subcell_range
+        repeat: expr
+        repeat-expr: subcell_size
+        doc: TODO Wrong offset? Also which field has the count??
+
+  collision_surface:
+    seq:
+      - id: field_0
+        type: s2
+        doc: Q7.8.
+
+      - id: field_2
+        type: s2
+        doc: Q7.8.
+
+      - id: field_4
+        type: s2
+        doc: Q7.8.
+
+      - id: ground_type
+        type: b5
+
+      - id: disable_height
+        type: b3
+
+      - id: field_5_8
+        type: b3
+
+      - id: field_6_11
+        type: b4
+
+      - id: field_6_15
+        type: b1
+
+      - id: tilt_angle_x
+        type: s2
+        doc: Q3.12.
+
+      - id: tilt_angle_z
+        type: s2
+        doc: Q3.12.
+
+  collision_subcell:
+    seq:
+      - id: field_0_0
+        type: b14
+        doc: Q7.8.
+
+      - id: field_0_14
+        type: b2
+
+      - id: field_2_0
+        type: b14
+        doc: Q7.8.
+
+      - id: field_2_14
+        type: b2
+
+      - id: field_4
+        type: s2
+        doc: Q7.8.
+
+      - id: split_vertex_idx_0
+        type: u1
+
+      - id: split_vertex_idx_1
+        type: u1
+
+      - id: surface_idx_0
+        type: u1
+
+      - id: surface_idx_1
+        type: u1
+
+      - size: 2
+
+  collision_18:
+    seq:
+      - id: ground_type
+        type: b5
+
+      - id: disable_height
+        type: b3
+
+      - id: field_0_8
+        type: b4
+
+      - id: field_0_12
+        type: b3
+
+      - id: field_0_15
+        type: b1
+
+      - id: offset
+        type: svector_3
+        doc: Q7.8.
+
+      - id: field_8
+        type: u2
+        doc: Q7.8.
+
+  collision_subcell_range:
+    seq:
+      - id: field_0
+        type: s2
+
+      - id: field_2
+        type: s2
+
+  material:
+    seq:
+      - id: name
+        type: strz
+        size: 8
+
+      - id: offset_texture
+        type: u4
+
+      - id: field_c
+        type: u1
+
+      - id: unk_d
+        type: u1
+
+      - id: field_e
+        type: u1
+
+      - id: field_f
+        type: u1
+
+      - id: field_10
+        type: u2
+
+      - id: field_12
+        type: u2
+
+      - id: field_14
+        type: u2
+
+      - id: field_16
+        type: u2
 
   primitive:
     seq:
@@ -606,3 +581,17 @@ types:
 
       - id: count
         type: u1
+
+  matrix:
+    seq:
+      - id: rotation
+        type: s2
+        repeat: expr
+        repeat-expr: 9
+
+      - size: 2
+
+      - id: translation
+        type: s4
+        repeat: expr
+        repeat-expr: 3

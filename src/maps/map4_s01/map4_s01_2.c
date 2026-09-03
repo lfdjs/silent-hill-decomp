@@ -249,7 +249,7 @@ void func_800D2408(void) // 0x800D2408
     #define cybilChara  &g_SysWork.npcs[0]
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 3 && g_SysWork.sysStateSteps[0] < 41)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -543,7 +543,7 @@ void func_800D2408(void) // 0x800D2408
             Dms_CharacterTransformGet(cybilChara.position, cybilChara.rotation, "SIBYL", g_Cutscene_Timer0, (s_DmsHeader*)FS_BUFFER_11);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer0, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer0, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPosition, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAt, NULL, true);
 
@@ -567,7 +567,7 @@ void func_800D2F74(void) // 0x800D2F74
     #define playerChara &g_SysWork.playerWork.player
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 3 && g_SysWork.sysStateSteps[0] < 10)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -667,7 +667,7 @@ void func_800D2F74(void) // 0x800D2F74
     if (g_Cutscene_Timer1 >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(playerChara.position, playerChara.rotation, "HERO", g_Cutscene_Timer1, (s_DmsHeader*)FS_BUFFER_11);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer1, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer1, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPosition, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAt, NULL, true);
     }
@@ -701,7 +701,7 @@ void func_800D3420(void) // 0x800D3420
     scratchData = PSX_SCRATCH_ADDR(0);
 
     // Skip.
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip &&
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 29)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -980,7 +980,7 @@ void func_800D3420(void) // 0x800D3420
             Dms_CharacterTransformGet(cybilChara.position, cybilChara.rotation, "SIBYL", g_Cutscene_Timer3, FS_BUFFER_11);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer3, FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer3, FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPosition, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAt, NULL, true);
 
@@ -1037,7 +1037,7 @@ void func_800D4410(void) // 0x800D4410
     #define playerChara &g_SysWork.playerWork.player
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 13)
     {
         SD_Call(19);
@@ -1169,7 +1169,7 @@ void func_800D4410(void) // 0x800D4410
     if (g_Cutscene_Timer2 >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(playerChara.position, playerChara.rotation, "HERO", g_Cutscene_Timer2, (s_DmsHeader*)FS_BUFFER_11);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer2, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPosition, &g_Cutscene_CameraLookAt, NULL, g_Cutscene_Timer2, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPosition, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAt, NULL, true);
     }
@@ -1218,7 +1218,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D4BA4
         }
         else
         {
-            Collision_FlagBitsSet(CollisionTriggerFlag_1);
+            Collision_FlagBitsSet(CollisionTriggerFlag_Objects);
         }
 
         WorldObjects_Add(&WorldObject_D_800D7FF0.object, &WorldObject_D_800D7FF0.position, &SVECTOR3_Zero);

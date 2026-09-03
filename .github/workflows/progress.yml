@@ -1,17 +1,19 @@
 name: Determine and Push Progress
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
     paths-ignore:
       - '**.md'
+      - '**.ksy'
 
 jobs:
   build:
-    if: github.repository == 'Vatuu/silent-hill-decomp'
+    if: github.repository == 'shdecompilations/silent-hill-decomp'
     
-    container: ghcr.io/vatuu/decomp-images-silent-hill:master
+    container: ghcr.io/shdecompilations/decomp-images-silent-hill:master
 
     strategy:
       fail-fast: true

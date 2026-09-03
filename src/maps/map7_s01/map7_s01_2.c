@@ -29,35 +29,35 @@ void func_800D6844(s32 arg0) // 0x800D6844
 
 void func_800D6878(void) // 0x800D6878
 {
-    s32 bgmIdx; // `e_BgmTrackIdx`
+    s32 bgmIdx; // `e_BgmCmd`
 
     if (g_SavegamePtr->mapRoomIdx == 3)
     {
-        bgmIdx = BgmTrackIdx_15;
+        bgmIdx = BgmCmd_Track15;
     }
     else if (Savegame_EventFlagGet(EventFlag_481))
     {
         if (!Savegame_EventFlagGet(EventFlag_574))
         {
             Savegame_EventFlagSet(EventFlag_574);
-            bgmIdx = BgmTrackIdx_1;
+            bgmIdx = BgmCmd_UpdateTrack;
         }
         else
         {
-            bgmIdx = BgmTrackIdx_22;
+            bgmIdx = BgmCmd_Track22;
         }
     }
     else
     {
-        bgmIdx = BgmTrackIdx_14;
+        bgmIdx = BgmCmd_Track14;
     }
 
-    Bgm_TrackChange(bgmIdx);
+    Bgm_SongChange(bgmIdx);
 }
 
 void func_800D68F8(void) // 0x800D68F8
 {
-    Bgm_TrackChange(Savegame_EventFlagGet(EventFlag_M5S03_KaufmannHasMotorcycleVial) ? 40 : 35);
+    Bgm_SongChange(Savegame_EventFlagGet(EventFlag_M5S03_KaufmannHasMotorcycleVial) ? 40 : 35);
 }
 
 #include "maps/shared/sharedFunc_800D0110_7_s00.h" // 0x800D6938
@@ -156,7 +156,7 @@ void func_800D725C(void) // 0x800D725C
 {
     s_FsImageDesc charaTex;
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 4 && g_SysWork.sysStateSteps[0] <= 20)
     {
         SysWork_StateStepSet(0, 22);
@@ -190,11 +190,11 @@ void func_800D725C(void) // 0x800D725C
             Event_CharaAnimCmdExecute(CharaAnimCmd_SetState, &g_SysWork.playerWork.player, 51, false);
             sharedFunc_800D2EB4_0_s00();
             func_8003D03C();
-            Bgm_TrackChange(BgmTrackIdx_4);
+            Bgm_SongChange(BgmCmd_Track4);
             SysWork_StateStepIncrement(0);
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_4);
+            Bgm_CrossfadeToTrack(BgmCmd_Track4);
             break;
 
         case 2:
@@ -324,7 +324,7 @@ void func_800D725C(void) // 0x800D725C
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11);
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "LISA", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -336,7 +336,7 @@ void func_800D7A60(void) // 0x800D7A60
     SVECTOR3 rot;
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] <= 15)
     {
         SysWork_StateStepSet(0, 17);
@@ -495,7 +495,7 @@ void func_800D7A60(void) // 0x800D7A60
             Dms_CharacterTransformGet(&g_WorldObject_Door.position, &g_WorldObject_Door.rotation, "ADOOR", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -995,22 +995,22 @@ void func_800D94DC(void) // 0x800D94DC
         case 4:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
 
-            sharedData_800E2CA8_7_s01 += (g_Controller0->sticks_24.sticks_0.leftX * 16384) / 75;
+            sharedData_800E2CA8_7_s01 += (g_Controller0->normalizedSticks.sticks_0.leftX * 16384) / 75;
             sharedData_800E2CA8_7_s01  = CLAMP_RANGE(sharedData_800E2CA8_7_s01, Q12(-120.0f), Q12(120.0f));
 
-            sharedData_800E2CAC_7_s01 += (g_Controller0->sticks_24.sticks_0.leftY * 16384) / 75;
+            sharedData_800E2CAC_7_s01 += (g_Controller0->normalizedSticks.sticks_0.leftY * 16384) / 75;
             sharedData_800E2CAC_7_s01  = CLAMP_RANGE(sharedData_800E2CAC_7_s01, Q12(-120.0f), Q12(120.0f));
 
             Game_TimerUpdate();
             Gfx_CursorDraw((s16)(FP_FROM(sharedData_800E2CA8_7_s01, Q12_SHIFT) + 8), FP_FROM(sharedData_800E2CAC_7_s01, Q12_SHIFT) + 8, 8, 8, 0, 64, 32, 32, 128, 192, 0, 12);
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
             {
                 SysWork_StateStepSet(0, 8);
                 break;
             }
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
             {
                 for (i = 0; i < ARRAY_SIZE(D_800E1510); i++)
                 {
@@ -1249,7 +1249,7 @@ void func_800D9C9C(void) // 0x800D9C9C
             break;
 
         case 4:
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
             {
                 if (!Savegame_EventFlagGet(EventFlag_487) && (D_800E1690.field_0 == 1 || D_800E1690.field_0 == 5 || D_800E1690.field_0 == 6))
                 {
@@ -1260,7 +1260,7 @@ void func_800D9C9C(void) // 0x800D9C9C
                     SysWork_StateStepSet(0, 15);
                 }
             }
-            else if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+            else if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
             {
                 SysWork_StateStepSet(0, 15);
             }
@@ -1307,10 +1307,10 @@ void func_800D9C9C(void) // 0x800D9C9C
         case 9:
             Event_BgTextureCmd(BgTextureCmd_Draw, 0, false);
 
-            sharedData_800E2CA8_7_s01 += (g_Controller0->sticks_24.sticks_0.leftX * 16384) / 75;
+            sharedData_800E2CA8_7_s01 += (g_Controller0->normalizedSticks.sticks_0.leftX * 16384) / 75;
             sharedData_800E2CA8_7_s01  = CLAMP_RANGE(sharedData_800E2CA8_7_s01, Q12(-80.0f), Q12(80.0f));
 
-            sharedData_800E2CAC_7_s01 += (g_Controller0->sticks_24.sticks_0.leftY * 16384) / 75;
+            sharedData_800E2CAC_7_s01 += (g_Controller0->normalizedSticks.sticks_0.leftY * 16384) / 75;
             sharedData_800E2CAC_7_s01  = CLAMP_RANGE(sharedData_800E2CAC_7_s01, Q12(-80.0f), Q12(80.0f));
 
             Game_TimerUpdate();
@@ -1318,13 +1318,13 @@ void func_800D9C9C(void) // 0x800D9C9C
             // TODO: Should `Gfx_CursorDraw` first args be `s16`?
             Gfx_CursorDraw((s16)(FP_FROM(sharedData_800E2CA8_7_s01, 12) + 8), (s16)FP_FROM(sharedData_800E2CAC_7_s01, 12) + 8, 8, 8, 0, 0x40, 0x20, 0x20, 0x80, 0xC0, 0, 0xC);
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.cancel)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.cancel)
             {
                 SysWork_StateStepSet(0, 15);
                 break;
             }
 
-            if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
+            if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.enter)
             {
                 for (i = 0; i < 3; i++)
                 {
@@ -1685,7 +1685,7 @@ void func_800DAE00(void) // 0x800DAE00
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_11));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }
@@ -1938,7 +1938,7 @@ void func_800DCE20(void) // 0x800DCE20
     s32 i;
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 6)
     {
         SysWork_StateStepSet(0, 6);
@@ -2156,8 +2156,8 @@ void Map_WorldObjectsUpdate(void) // 0x800DDCD4
     s_WorldObjectModel* objPtr;
     MAP_CHUNK_CHECK_VARIABLE_DECL();
 
-    cellZ0 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_CELL_SIZE);
-    cellX0 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellZ0 = g_SysWork.playerWork.player.position.vz / Q12(CHUNK_SIZE);
+    cellX0 = g_SysWork.playerWork.player.position.vx / Q12(CHUNK_SIZE);
 
     if (g_SysWork.playerWork.player.position.vx > Q12(0.0f))
     {

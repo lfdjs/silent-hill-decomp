@@ -13,41 +13,56 @@
 
 #define INPUT_ACTION_COUNT   14
 #define CONTROLLER_COUNT_MAX 2
-#define STICK_THRESHOLD      FP_STICK(0.5f)
+#define STICK_DEADZONE       FP_STICK(0.5f)
 
+/** @brief PSX controller input flags. */
 typedef enum _ControllerFlags
 {
-    ControllerFlag_None         = 0,
-    ControllerFlag_Select       = 1 << 0,
-    ControllerFlag_L3           = 1 << 1,
-    ControllerFlag_R3           = 1 << 2,
-    ControllerFlag_Start        = 1 << 3,
-    ControllerFlag_DpadUp       = 1 << 4,
-    ControllerFlag_DpadRight    = 1 << 5,
-    ControllerFlag_DpadDown     = 1 << 6,
-    ControllerFlag_DpadLeft     = 1 << 7,
-    ControllerFlag_L2           = 1 << 8,
-    ControllerFlag_R2           = 1 << 9,
-    ControllerFlag_L1           = 1 << 10,
-    ControllerFlag_R1           = 1 << 11,
-    ControllerFlag_Triangle     = 1 << 12,
-    ControllerFlag_Circle       = 1 << 13,
-    ControllerFlag_Cross        = 1 << 14,
-    ControllerFlag_Square       = 1 << 15,
-    ControllerFlag_LStickUp2    = 1 << 16,
-    ControllerFlag_LStickRight2 = 1 << 17,
-    ControllerFlag_LStickDown2  = 1 << 18,
-    ControllerFlag_LStickLeft2  = 1 << 19,
-    ControllerFlag_RStickUp     = 1 << 20,
-    ControllerFlag_RStickRight  = 1 << 21,
-    ControllerFlag_RStickDown   = 1 << 22,
-    ControllerFlag_RStickLeft   = 1 << 23,
-    ControllerFlag_LStickUp     = 1 << 24,
-    ControllerFlag_LStickRight  = 1 << 25,
-    ControllerFlag_LStickDown   = 1 << 26,
-    ControllerFlag_LStickLeft   = 1 << 27
+    ControllerFlag_None            = 0,
+    ControllerFlag_Select          = 1 << 0,
+    ControllerFlag_L3              = 1 << 1,
+    ControllerFlag_R3              = 1 << 2,
+    ControllerFlag_Start           = 1 << 3,
+    ControllerFlag_DpadUp          = 1 << 4,
+    ControllerFlag_DpadRight       = 1 << 5,
+    ControllerFlag_DpadDown        = 1 << 6,
+    ControllerFlag_DpadLeft        = 1 << 7,
+    ControllerFlag_L2              = 1 << 8,
+    ControllerFlag_R2              = 1 << 9,
+    ControllerFlag_L1              = 1 << 10,
+    ControllerFlag_R1              = 1 << 11,
+    ControllerFlag_Triangle        = 1 << 12,
+    ControllerFlag_Circle          = 1 << 13,
+    ControllerFlag_Cross           = 1 << 14,
+    ControllerFlag_Square          = 1 << 15,
+    ControllerFlag_LStickLowUp     = 1 << 16,
+    ControllerFlag_LStickLowRight  = 1 << 17,
+    ControllerFlag_LStickLowDown   = 1 << 18,
+    ControllerFlag_LStickLowLeft   = 1 << 19,
+    ControllerFlag_RStickLowUp     = 1 << 20,
+    ControllerFlag_RStickLowRight  = 1 << 21,
+    ControllerFlag_RStickLowDown   = 1 << 22,
+    ControllerFlag_RStickLowLeft   = 1 << 23,
+    ControllerFlag_LStickHighUp    = 1 << 24,
+    ControllerFlag_LStickHighRight = 1 << 25,
+    ControllerFlag_LStickHighDown  = 1 << 26,
+    ControllerFlag_LStickHighLeft  = 1 << 27,
+    ControllerFlag_RStickHighUp    = 1 << 28,
+    ControllerFlag_RStickHighRight = 1 << 29,
+    ControllerFlag_RStickHighDown  = 1 << 30,
+    ControllerFlag_RStickHighLeft  = 1 << 31,
+
+    ControllerFlag_FaceButtons = ControllerFlag_Select | ControllerFlag_L3 | ControllerFlag_R3 | ControllerFlag_Start |
+                                 ControllerFlag_DpadUp | ControllerFlag_DpadRight | ControllerFlag_DpadDown | ControllerFlag_DpadLeft |
+                                 ControllerFlag_L2 | ControllerFlag_R2 | ControllerFlag_L1 | ControllerFlag_R1 |
+                                 ControllerFlag_Triangle | ControllerFlag_Circle | ControllerFlag_Cross | ControllerFlag_Square,
+    ControllerFlag_LowSticks   = ControllerFlag_LStickLowUp | ControllerFlag_LStickLowRight | ControllerFlag_LStickLowDown | ControllerFlag_LStickLowLeft |
+                                 ControllerFlag_RStickLowUp | ControllerFlag_RStickLowRight | ControllerFlag_RStickLowDown | ControllerFlag_RStickLowLeft,
+    ControllerFlag_HighSticks  = ControllerFlag_LStickHighUp | ControllerFlag_LStickHighRight | ControllerFlag_LStickHighDown | ControllerFlag_LStickHighLeft |
+                                 ControllerFlag_RStickHighUp | ControllerFlag_RStickHighRight | ControllerFlag_RStickHighDown | ControllerFlag_RStickHighLeft,
 } e_ControllerFlags;
 
+/** @brief PSX controller analog stick states. */
 typedef union
 {
     /* 0x0 */ u32 rawData_0;
@@ -60,31 +75,39 @@ typedef union
     /* 0x4 */ } sticks_0; // Normalized range: `[-128, 127]`.
 } s_AnalogSticks;
 
+/** @brief Analog PSX controller state. */
 typedef struct _AnalogController
 {
-    u8  status;
-    u8  received_bytes : 4; /** Number of bytes received / 2. */
-    u8  terminal_type  : 4; /** `e_PadTerminalType` */
-    u16 digitalButtons;
-    u8  rightX;
-    u8  rightY;
-    u8  leftX;
-    u8  leftY;
+    /* 0x0 */ u8  status;
+    /* 0x1 */ u8  receivedBytes : 4; /** Number of bytes received / 2. */
+    /* 0x2 */ u8  terminalType  : 4; /** `e_PadTerminalType` */
+    /* 0x3 */ u16 buttonFlags;       /** `e_ControllerFlags` */
+    /* 0x5 */ u8  rightX;
+    /* 0x6 */ u8  rightY;
+    /* 0x7 */ u8  leftX;
+    /* 0x8 */ u8  leftY;
 } s_AnalogController;
 STATIC_ASSERT_SIZEOF(s_AnalogController, 8);
 
+/** @brief PSX controller button state flags. */
+typedef struct _ButtonFlags
+{
+    /* 0x0  */ e_ControllerFlags held;
+    /* 0x4  */ e_ControllerFlags clicked;
+    /* 0x8  */ e_ControllerFlags released;
+    /* 0xC  */ e_ControllerFlags pulsed;
+    /* 0x10 */ e_ControllerFlags pulsedGui;
+} s_ButtonFlags;
+
+/** @brief PSX controller input data. */
 typedef struct _ControllerData
 {
     /* 0x0  */ s_AnalogController analogController;
     /* 0x8  */ s32                pulseTicks;
-    /* 0xC  */ e_ControllerFlags  heldBtnFlags;
-    /* 0x10 */ e_ControllerFlags  clickedBtnFlags;
-    /* 0x14 */ e_ControllerFlags  releasedBtnFlags;
-    /* 0x18 */ e_ControllerFlags  pulsedBtnFlags;
-    /* 0x1C */ e_ControllerFlags  pulsedGuiBtnFlags;
-    /* 0x20 */ s_AnalogSticks     sticks_20;
-    /* 0x24 */ s_AnalogSticks     sticks_24;
-    /* 0x28 */ s32                field_28;
+    /* 0xC  */ s_ButtonFlags      buttonFlags;
+    /* 0x20 */ s_AnalogSticks     rawSticks;        /** Raw analog stick values, signed range `[-128, 127]`. */
+    /* 0x24 */ s_AnalogSticks     normalizedSticks; /** Normalized analog stick values with deadzone, signed range `[-112, 112]`. */
+    /* 0x28 */ s32                field_28;         // Processed input flags.
 } s_ControllerData;
 STATIC_ASSERT_SIZEOF(s_ControllerData, 44);
 
@@ -118,14 +141,19 @@ extern s_ControllerData* const g_Controller1;
 // FUNCTIONS
 // ==========
 
+/** @brief Initializes controller 1. */
 void Joy_Init(void);
 
+/** @brief Reads analog data from controller 1. */
 void Joy_ReadP1(void);
 
+/** @brief Updates input data for all controllers. */
 void Joy_Update(void);
 
+/** @brief Updates digital data for all controllers, additionally handling special directional cases. */
 void Joy_ControllerDataUpdate(void);
 
+// TODO: Finish demagicking hex values. Does special handling for player movement.
 void ControllerData_AnalogToDigital(s_ControllerData* cont, bool arg1);
 
 /** @brief @unused */

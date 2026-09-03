@@ -258,7 +258,7 @@ void func_800D1AF8(void) // 0x800D1AF8
     SVECTOR3 unused;
     VECTOR3  lightIntPos;
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 14 && g_SysWork.sysStateSteps[0] < 29)
     {
         SysWork_StateStepSet(0, 32);
@@ -337,7 +337,7 @@ void func_800D1AF8(void) // 0x800D1AF8
             SysWork_StateStepIncrement(0);
 
         case 10:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_34);
+            Bgm_CrossfadeToTrack(BgmCmd_Track34);
             break;
 
         case 11:
@@ -532,7 +532,7 @@ void func_800D1AF8(void) // 0x800D1AF8
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, "HERO", g_Cutscene_Timer, FS_BUFFER_17);
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "KAU", g_Cutscene_Timer, FS_BUFFER_17);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_17));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_17));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -676,7 +676,7 @@ void Map_WorldObjectsUpdate(void) // 0x800D2B68
         }
         else
         {
-            collFlags = CollisionTriggerFlag_1;
+            collFlags = CollisionTriggerFlag_Objects;
         }
 
         WorldObjects_Add(&g_WorldObject_Movaches.object, &g_WorldObject_Movaches.position, &SVECTOR3_Zero);

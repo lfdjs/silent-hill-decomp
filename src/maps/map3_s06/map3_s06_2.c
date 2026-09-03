@@ -85,7 +85,7 @@ void func_800D0B10(void) // 0x800D0B10
 void func_800D0C14(void) // 0x800D0C14
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 4 && g_SysWork.sysStateSteps[0] < 30)
     {
         SysWork_StateStepSet(0, 30);
@@ -172,7 +172,7 @@ void func_800D0C14(void) // 0x800D0C14
             break;
 
         case 7:
-            if (!Sd_AmbientSfxInit())
+            if (Sd_AmbientSfxInit() == 0)
             {
                 SysWork_StateStepIncrement(0);
             }
@@ -311,7 +311,7 @@ void func_800D0C14(void) // 0x800D0C14
             break;
 
         case 32:
-            if (!Sd_AmbientSfxInit())
+            if (Sd_AmbientSfxInit() == 0)
             {
                 SysWork_StateStepIncrement(0);
             }
@@ -351,7 +351,7 @@ void func_800D0C14(void) // 0x800D0C14
             Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, "DARIA", g_Cutscene_Timer, FS_BUFFER_15);
         }
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_15));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_15));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
     }

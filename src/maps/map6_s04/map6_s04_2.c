@@ -1763,7 +1763,7 @@ void func_800E1D50(void) // 0x800E1D50
     q19_12   rotZ;
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < EventState_Skip)
     {
         SysWork_StateStepSet(0, EventState_Skip);
@@ -1832,7 +1832,7 @@ void func_800E1D50(void) // 0x800E1D50
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(&g_SysWork.playerWork.player.position, &g_SysWork.playerWork.player.rotation, D_800CC4C4, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
         Dms_CharacterTransformGet(&g_SysWork.lightPosition, &lintRot, D_800CC4CC, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14);
@@ -1931,7 +1931,7 @@ void func_800E219C(void) // 0x800E219C
 
     #define playerChara g_SysWork.playerWork.player
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 8)
     {
         SysWork_StateStepReset();
@@ -2037,7 +2037,7 @@ void func_800E219C(void) // 0x800E219C
         // Get "MSB" position
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, D_800CC4DC, g_Cutscene_Timer, FS_BUFFER_14);
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -2217,7 +2217,7 @@ void MapEvent_CutsceneCybilDeath(void) // 0x800E2CA0
     #define playerChara g_SysWork.playerWork.player
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] == 7)
     {
         SysWork_StateStepSet(0, 8);
@@ -2327,7 +2327,7 @@ void MapEvent_CutsceneCybilDeath(void) // 0x800E2CA0
         // Get "MSB" position
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, D_800CC4DC, g_Cutscene_Timer, FS_BUFFER_14);
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -2361,7 +2361,7 @@ void func_800E3244(void) // 0x800E3244
     #define playerChara g_SysWork.playerWork.player
 
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 27)
     {
         if (g_SysWork.sysStateSteps[0] != 20 &&
@@ -2627,7 +2627,7 @@ void func_800E3244(void) // 0x800E3244
         Dms_CharacterTransformGet(&g_SysWork.npcs[0].position, &g_SysWork.npcs[0].rotation, D_800CC4DC, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14);
         Dms_CharacterTransformGet(&g_SysWork.npcs[1].position, &g_SysWork.npcs[1].rotation, "ICU", g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14);
 
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, (s_DmsHeader*)FS_BUFFER_14));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -2668,7 +2668,7 @@ void func_800E3EF4(void) // 0x800E3EF4
 
     scratchData = PSX_SCRATCH_ADDR(0);
 
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] >= 4 && g_SysWork.sysStateSteps[0] < 63)
     {
         func_800E01F4();
@@ -2707,7 +2707,7 @@ void func_800E3EF4(void) // 0x800E3EF4
             break;
 
         case 1:
-            Bgm_CrossfadeToTrack(BgmTrackIdx_36);
+            Bgm_CrossfadeToTrack(BgmCmd_Track36);
             break;
 
         case 2:
@@ -3135,7 +3135,7 @@ void func_800E3EF4(void) // 0x800E3EF4
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
         Dms_CharacterTransformGet(&playerChara.position, &playerChara.rotation, &D_800CC4C4, g_Cutscene_Timer, FS_BUFFER_14);
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
         Dms_CharacterTransformGet(&g_SysWork.lightPosition, &unused, &D_800CC4CC, g_Cutscene_Timer, FS_BUFFER_14);
@@ -3203,7 +3203,7 @@ void func_800E558C(void) // 0x800E558C
 
     scratchData = PSX_SCRATCH_ADDR(0);
 
-    if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip &&
+    if (g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip &&
         g_SysWork.sysStateSteps[0] >= 2 && g_SysWork.sysStateSteps[0] < 6)
     {
         SysWork_StateStepSet(0, 6);
@@ -3328,7 +3328,7 @@ void func_800E558C(void) // 0x800E558C
 
     if (g_Cutscene_Timer >= Q12(0.0f))
     {
-        vcChangeProjectionValue(Dms_CameraTargetGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
+        vcChangeProjectionValue(Dms_CameraTargetsGet(&g_Cutscene_CameraPositionTarget, &g_Cutscene_CameraLookAtTarget, NULL, g_Cutscene_Timer, FS_BUFFER_14));
         vcUserCamTarget(&g_Cutscene_CameraPositionTarget, NULL, true);
         vcUserWatchTarget(&g_Cutscene_CameraLookAtTarget, NULL, true);
 
@@ -3379,7 +3379,7 @@ void Map_WorldObjectsInit(void) // 0x800E5D44
     func_800E02E0();
     func_800E10F8();
 
-    g_SysWork.npcFlagsId = 3;
+    g_SysWork.npcFlagId = 3;
 }
 
 // rodata at the bottom of this file. TODO: Inline once all users are decomped.
@@ -3404,8 +3404,8 @@ void Map_WorldObjectsUpdate(void) // 0x800E5F54
         func_8003A16C();
     }
 
-    cellZ0 = playerChara.position.vz / Q12(CHUNK_CELL_SIZE);
-    cellX0 = playerChara.position.vx / Q12(CHUNK_CELL_SIZE);
+    cellZ0 = playerChara.position.vz / Q12(CHUNK_SIZE);
+    cellX0 = playerChara.position.vx / Q12(CHUNK_SIZE);
 
     if (playerChara.position.vx > Q12(0.0f))
     {
@@ -3432,7 +3432,7 @@ void Map_WorldObjectsUpdate(void) // 0x800E5F54
 
             if (Savegame_EventFlagGet(EventFlag_443))
             {
-                collFlags = CollisionTriggerFlag_1;
+                collFlags = CollisionTriggerFlag_Objects;
 
                 if (g_SysWork.sysState != SysState_EventCallback)
                 {

@@ -21,8 +21,8 @@ static DVECTOR g_Text_Debug_PositionSet1;
 
 void Text_Debug_PositionSet(s16 x, s16 y) // 0x80031EFC
 {
-    #define OFFSET_X SCREEN_POSITION_X(50.0f)
-    #define OFFSET_Y SCREEN_POSITION_Y(47.0f)
+    #define OFFSET_X (SCREEN_WIDTH / 2)
+    #define OFFSET_Y 112
 
     if (x != NO_VALUE)
     {
@@ -98,8 +98,8 @@ void Text_Debug_Draw(char* str) // 0x80031F40
         packet += sizeof(SPRT_8);
     }
 
-    *((u32*)&g_Text_Debug_PositionSet1) = (posX & 0xFFFF) + (posY << 16);
-    tPage                               = (DR_TPAGE*)packet;
+    Math_SetDVectorFast(&g_Text_Debug_PositionSet1, posX, posY);
+    tPage = (DR_TPAGE*)packet;
 
     setDrawTPage(tPage, 0, 1, getTPageN(0, 0, 4, 1));
     addPrim(ot, tPage);

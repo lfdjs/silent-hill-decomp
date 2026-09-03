@@ -13,26 +13,31 @@
 // ========================================
 
 /** @brief Task commands for `SD_Call` to load BGM KDT and VAB files. */
-static u16 g_BgmTaskLoadCmds[42] = {
-    0,  0,  32, 33, 34, 35, 36, 37, 38, 39,
-    40, 41, 42, 43, 44, 46, 47, 48, 49, 50,
-    51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-    61, 62, 64, 65, 66, 67, 68, 69, 45, 70,
-    71, 63
+static u16 g_BgmTaskLoad[42] = {
+    0,  0, 
+    32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+    42, 43, 44, 46, 47, 48, 49, 50, 51, 52,
+    53, 54, 55, 56, 57, 58, 59, 60, 61, 62,
+    64, 65, 66, 67, 68, 69, 45, 70, 71, 63
 };
 
 /** @brief Task commands for `SD_Call` to set current BGM channels to be used. */
-static u16 g_BgmChannelSetTaskCmds[42] = {
-    0,   0,   769, 770, 771, 772, 773, 774,
-    775, 776, 777, 778, 779, 780, 781, 783,
-    784, 785, 786, 787, 788, 789, 790, 791,
-    792, 793, 794, 795, 796, 797, 798, 799,
-    801, 802, 803, 804, 805, 806, 782, 807,
-    808, 800
+static u16 g_BgmChannelSetTask[42] = {
+    0, 0,
+    SD_TASK_CHANNEL_SET(1),  SD_TASK_CHANNEL_SET(2),  SD_TASK_CHANNEL_SET(3),  SD_TASK_CHANNEL_SET(4),
+    SD_TASK_CHANNEL_SET(5),  SD_TASK_CHANNEL_SET(6),  SD_TASK_CHANNEL_SET(7),  SD_TASK_CHANNEL_SET(8),
+    SD_TASK_CHANNEL_SET(9),  SD_TASK_CHANNEL_SET(10), SD_TASK_CHANNEL_SET(11), SD_TASK_CHANNEL_SET(12),
+    SD_TASK_CHANNEL_SET(13), SD_TASK_CHANNEL_SET(15), SD_TASK_CHANNEL_SET(16), SD_TASK_CHANNEL_SET(17),
+    SD_TASK_CHANNEL_SET(18), SD_TASK_CHANNEL_SET(19), SD_TASK_CHANNEL_SET(20), SD_TASK_CHANNEL_SET(21),
+    SD_TASK_CHANNEL_SET(22), SD_TASK_CHANNEL_SET(23), SD_TASK_CHANNEL_SET(24), SD_TASK_CHANNEL_SET(25),
+    SD_TASK_CHANNEL_SET(26), SD_TASK_CHANNEL_SET(27), SD_TASK_CHANNEL_SET(28), SD_TASK_CHANNEL_SET(29),
+    SD_TASK_CHANNEL_SET(30), SD_TASK_CHANNEL_SET(31), SD_TASK_CHANNEL_SET(33), SD_TASK_CHANNEL_SET(34),
+    SD_TASK_CHANNEL_SET(35), SD_TASK_CHANNEL_SET(36), SD_TASK_CHANNEL_SET(37), SD_TASK_CHANNEL_SET(38),
+    SD_TASK_CHANNEL_SET(14), SD_TASK_CHANNEL_SET(39), SD_TASK_CHANNEL_SET(40), SD_TASK_CHANNEL_SET(32)
 };
 
 /** @brief Task commands for `SD_Call` to load ambient VAB files. */
-static u16 g_AmbientVabTaskLoadCmds[40] = {
+static u16 g_AmbientVabTaskLoad[40] = {
     0,   162, 170, 171, 204, 172, 173, 174,
     175, 176, 177, 178, 179, 179, 179, 180,
     181, 182, 183, 184, 185, 186, 187, 188,
@@ -41,10 +46,10 @@ static u16 g_AmbientVabTaskLoadCmds[40] = {
 };
 
 // ========================================
-// MUSIC INIT AND SET
+// ENVIROMENT AND MUSIC INIT AND SET
 // ========================================
 
-bool Bgm_Init(void) // 0x80035780
+bool Sd_BgmInit(void) // 0x80035780
 {
     if (Sd_AudioStreamingCheck() != AudioStreamingState_None)
     {
@@ -60,27 +65,28 @@ bool Bgm_Init(void) // 0x80035780
     switch (g_GameWork.gameStateSteps[1])
     {
         case 0:
-            func_8003596C();
+            Sd_BgmUpdateTrack();
             g_GameWork.gameStateSteps[1]++;
 
         case 1:
-            if (!Bgm_ActiveBgmTrackCheck(g_MapOverlayHdr.bgmIdx))
+            if (Sd_BgmActiveSongCheck(g_MapOverlayHdr.bgmCmd) == false)
             {
                 g_GameWork.gameStateSteps[1] += 2;
             }
             else
             {
                 SD_Call(18);
-                Bgm_AllLayersMute();
+                Bgm_LayerGlobalVariablesMute();
 
                 g_GameWork.gameStateSteps[1]++;
             }
             break;
 
         case 2:
-            if (func_80045BC8() == 0)
+            // Checks if no BGM channel is being used.
+            if (Sd_MidiChannelTaskGet() == 0)
             {
-                Bgm_TrackSet(g_MapOverlayHdr.bgmIdx);
+                Sd_BgmSongSet(g_MapOverlayHdr.bgmCmd);
                 g_GameWork.gameStateSteps[1]++;
             }
             break;
@@ -92,14 +98,14 @@ bool Bgm_Init(void) // 0x80035780
     return true;
 }
 
-bool Bgm_ActiveBgmTrackCheck(s32 bgmIdx) // 0x800358A8
+bool Sd_BgmActiveSongCheck(s32 bgmIdx) // 0x800358A8
 {
-    if (bgmIdx == BgmTrackIdx_None)
+    if (bgmIdx == BgmCmd_UpdateLayers)
     {
         return false;
     }
 
-    if (bgmIdx == BgmTrackIdx_1)
+    if (bgmIdx == BgmCmd_UpdateTrack)
     {
         return false;
     }
@@ -107,50 +113,46 @@ bool Bgm_ActiveBgmTrackCheck(s32 bgmIdx) // 0x800358A8
     return g_GameWork.bgmIdx != bgmIdx;
 }
 
-void Bgm_TrackSet(s32 bgmIdx) // 0x800358DC
+void Sd_BgmSongSet(s32 bgmIdx) // 0x800358DC
 {
-    if (bgmIdx == BgmTrackIdx_None)
+    if (bgmIdx == BgmCmd_UpdateLayers)
     {
         return;
     }
 
-    if (bgmIdx == BgmTrackIdx_1)
+    if (bgmIdx == BgmCmd_UpdateTrack)
     {
         return;
     }
 
     g_GameWork.bgmIdx = bgmIdx;
-    SD_Call(g_BgmTaskLoadCmds[bgmIdx]);
+    SD_Call(g_BgmTaskLoad[bgmIdx]);
 }
 
-void Bgm_ChannelSet(void) // 0x80035924
+void Sd_BgmChannelSet(void) // 0x80035924
 {
-    if (g_GameWork.bgmIdx == BgmTrackIdx_None)
+    if (g_GameWork.bgmIdx == BgmCmd_UpdateLayers)
     {
         return;
     }
 
-    if (g_GameWork.bgmIdx == BgmTrackIdx_1)
+    if (g_GameWork.bgmIdx == BgmCmd_UpdateTrack)
     {
         return;
     }
 
-    SD_Call(g_BgmChannelSetTaskCmds[g_GameWork.bgmIdx]);
+    SD_Call(g_BgmChannelSetTask[g_GameWork.bgmIdx]);
 }
 
-void func_8003596C(void) // 0x8003596C
+void Sd_BgmUpdateTrack(void)
 {
-    if (g_MapOverlayHdr.bgmIdx == BgmTrackIdx_1)
+    if (g_MapOverlayHdr.bgmCmd == BgmCmd_UpdateTrack)
     {
-        Bgm_TrackUpdate(true);
+        Bgm_Update(true);
     }
 }
 
-// ========================================
-// AMBIENT SOUND INIT & SET
-// ========================================
-
-bool Sd_AmbientSfxInit(void) // 0x8003599C
+s32 Sd_AmbientSfxInit(void) // 0x8003599C
 {
     if (Sd_AudioStreamingCheck() != AudioStreamingState_None || Fs_QueueGetLength() > 0)
     {
@@ -172,33 +174,33 @@ bool Sd_AmbientSfxInit(void) // 0x8003599C
                 }
             }
 
-            if (Sd_IsCurrentAmbientTargetCheck((s8)g_MapOverlayHdr.ambientAudioIdx) != false)
+            if (Sd_ActiveAmbientSfxCheck((s8)g_MapOverlayHdr.ambientAudioIdx) != false)
             {
                 SD_Call(17);
                 g_GameWork.gameStateSteps[1]++;
-                return true;
+                return 1;
             }
             break;
 
         case 1:
             Sd_AmbientSfxSet((s8)g_MapOverlayHdr.ambientAudioIdx);
             g_GameWork.gameStateSteps[1]++;
-            return true;
+            return 1;
 
         default:
            break;
     }
 
-    return false;
+    return 0;
 }
 
-bool Sd_IsCurrentAmbientTargetCheck(s32 ambientIdx) // 0x80035AB0
+bool Sd_ActiveAmbientSfxCheck(s32 ambientIdx) // 0x80035AB0
 {
     return g_GameWork.ambientIdx != ambientIdx;
 }
 
-void Sd_AmbientSfxSet(s32 idx) // 0x80035AC8
+void Sd_AmbientSfxSet(s32 bgmIdx) // 0x80035AC8
 {
-    g_GameWork.ambientIdx = idx;
-    SD_Call(g_AmbientVabTaskLoadCmds[idx]);
+    g_GameWork.ambientIdx = bgmIdx;
+    SD_Call(g_AmbientVabTaskLoad[bgmIdx]);
 }

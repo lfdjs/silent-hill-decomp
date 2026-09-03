@@ -385,10 +385,10 @@ void func_800D6790(void) // 0x800D6790
 
     if (Savegame_EventFlagGet(EventFlag_354))
     {
-        bgmFlags |= BgmFlag_Layer5 | BgmFlag_Layer3 | BgmFlag_Layer1;
+        bgmFlags |= BgmFlag_Layer6 | BgmFlag_Layer4 | BgmFlag_Layer2;
     }
 
-    Bgm_Update(bgmFlags, Q12(0.25f), &D_800DA570);
+    Bgm_LayersUpdate(bgmFlags, Q12(0.25f), &D_800DA570);
 }
 
 void GameBoot_LoadScreen_StageString(void) {}
@@ -571,7 +571,7 @@ void func_800D6B00(void) // 0x800D6B00
 
             CutsceneBorder_ForceShow();
 
-            Sd_PlaySfx(Sfx_Unk1575, Q8(0.0f), Q8(0.5f));
+            Sd_SfxPlay(Sfx_Unk1575, Q8(0.0f), Q8(0.5f));
             SysWork_StateStepIncrement(0);
 
         case 11:
@@ -667,7 +667,7 @@ void func_800D6B00(void) // 0x800D6B00
 void func_800D732C(void) // 0x800D732C
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 3)
     {
         ScreenFade_ResetTimestep();
@@ -730,7 +730,7 @@ void func_800D732C(void) // 0x800D732C
 void func_800D75FC(void) // 0x800D75FC
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 6)
     {
         ScreenFade_ResetTimestep();
@@ -801,7 +801,7 @@ void func_800D75FC(void) // 0x800D75FC
 void func_800D7940(void) // 0x800D7940
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 6)
     {
         ScreenFade_ResetTimestep();
@@ -871,7 +871,7 @@ void func_800D7940(void) // 0x800D7940
 void func_800D7C84(void) // 0x800D7C84
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 6)
     {
         ScreenFade_ResetTimestep();
@@ -936,7 +936,7 @@ void func_800D7C84(void) // 0x800D7C84
 void func_800D7F88(void) // 0x800D7F88
 {
     // Skip.
-    if ((g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.skip) &&
+    if ((g_Controller0->buttonFlags.clicked & g_GameWorkPtr->config.controllerConfig.skip) &&
         g_SysWork.sysStateSteps[0] > 0 && g_SysWork.sysStateSteps[0] < 6)
     {
         ScreenFade_ResetTimestep();
@@ -1018,7 +1018,7 @@ void Map_WorldObjectsInit(void) // 0x800D82A8
         Chara_SpawnFlagsSet(Chara_Creeper, 7, SpawnFlag_None);
         Chara_SpawnFlagsSet(Chara_Creeper, 12, SpawnFlag_None);
 
-        g_SysWork.npcFlagsId = 3;
+        g_SysWork.npcFlagId = 3;
     }
     else if (g_SavegamePtr->gameDifficulty == GameDifficulty_Hard)
     {
@@ -1028,11 +1028,11 @@ void Map_WorldObjectsInit(void) // 0x800D82A8
         Chara_SpawnFlagsSet(Chara_Creeper, 8, SpawnFlag_0 | SpawnFlag_2 | SpawnFlag_3);
         Chara_SpawnFlagsSet(Chara_Creeper, 9, SpawnFlag_0 | SpawnFlag_2 | SpawnFlag_3);
 
-        g_SysWork.npcFlagsId = 4;
+        g_SysWork.npcFlagId = 4;
     }
     else
     {
-        g_SysWork.npcFlagsId = 4;
+        g_SysWork.npcFlagId = 4;
     }
 
     WorldObject_ModelNameSet(&g_CommonWorldObjects[0], g_CommonWorldObjectNames[2]);

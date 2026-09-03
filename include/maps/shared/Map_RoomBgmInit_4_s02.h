@@ -8,14 +8,14 @@ void Map_RoomBgmInit(bool arg0)
     mapRoomIdx = g_SavegamePtr->mapRoomIdx;
     fadeSpeed  = Q12(0.1f);
 
-    if (g_GameWork.bgmIdx == BgmTrackIdx_13)
+    if (g_GameWork.bgmIdx == BgmCmd_Track13)
     {
         var_a2 = sharedData_800ED418_4_s02;
 
         switch (mapRoomIdx)
         {
             case 15:
-                bgmFlags = BgmFlag_Layer2;
+                bgmFlags = BgmFlag_Layer3;
                 break;
 
             case 16:
@@ -69,11 +69,11 @@ void Map_RoomBgmInit(bool arg0)
                 break;
 
             default:
-                bgmFlags = BgmFlag_Layer0;
+                bgmFlags = BgmFlag_Layer1;
                 break;
         }
     }
-    else if (g_GameWork.bgmIdx == BgmTrackIdx_33)
+    else if (g_GameWork.bgmIdx == BgmCmd_Track33)
     {
         var_a2 = sharedData_800ED424_4_s02;
 
@@ -82,14 +82,14 @@ void Map_RoomBgmInit(bool arg0)
             case 18:
                 if (Savegame_EventFlagGet(EventFlag_334) || !Savegame_EventFlagGet(EventFlag_333))
                 {
-                    bgmFlags = BgmFlag_Layer1;
+                    bgmFlags = BgmFlag_Layer2;
                 }
                 else
                 {
                     if (Savegame_EventFlagGet(EventFlag_330))
                     {
                         bgmFlags = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4);
-                        fadeSpeed = Q12(CHUNK_CELL_SIZE);
+                        fadeSpeed = Q12(CHUNK_SIZE);
                     }
                     else
                     {
@@ -151,12 +151,12 @@ void Map_RoomBgmInit(bool arg0)
 
         if (!Savegame_EventFlagGet(EventFlag_314))
         {
-            if (g_SysWork.playerWork.player.position.vz < Q12(CHUNK_CELL_SIZE))
+            if (g_SysWork.playerWork.player.position.vz < Q12(CHUNK_SIZE))
             {
                 Savegame_EventFlagSet(EventFlag_314);
             }
 
-            bgmFlags = BgmFlag_Layer1;
+            bgmFlags = BgmFlag_Layer2;
         }
         else
         {
@@ -164,5 +164,5 @@ void Map_RoomBgmInit(bool arg0)
         }
     }
 
-    Bgm_Update(bgmFlags, fadeSpeed, var_a2);
+    Bgm_LayersUpdate(bgmFlags, fadeSpeed, var_a2);
 }
