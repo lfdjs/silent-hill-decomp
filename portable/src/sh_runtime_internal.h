@@ -4,12 +4,16 @@
 #include "silent_hill/sh_api.h"
 
 #include "sh_clock.h"
+#include "sh_memory_internal.h"
+#include "sh_overlay_internal.h"
 
 struct ShRuntime
 {
     ShHostServices host;
     ShRng rng;
     ShClock clock;
+    ShMemory memory;
+    ShOverlayManager overlays;
     ShTickFn tick;
     void* tick_userdata;
 

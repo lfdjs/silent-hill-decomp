@@ -4,6 +4,8 @@
 #include "silent_hill/sh_host.h"
 #include "silent_hill/sh_input.h"
 #include "silent_hill/sh_io.h"
+#include "silent_hill/sh_memory.h"
+#include "silent_hill/sh_overlay.h"
 #include "silent_hill/sh_result.h"
 #include "silent_hill/sh_rng.h"
 #include "silent_hill/sh_timing.h"
@@ -13,7 +15,6 @@
 extern "C" {
 #endif
 
-typedef struct ShRuntime ShRuntime;
 
 typedef struct ShRuntimeConfig
 {
@@ -23,6 +24,7 @@ typedef struct ShRuntimeConfig
     uint32_t initial_rng_seed;
     const ShTimingConfig* timing;
     const ShInputConfig* input;
+    const ShMemoryConfig* memory;
 } ShRuntimeConfig;
 
 #define SH_RUNTIME_CONFIG_INIT \
@@ -31,6 +33,7 @@ typedef struct ShRuntimeConfig
         SH_ABI_VERSION_CURRENT, \
         NULL, \
         0u, \
+        NULL, \
         NULL, \
         NULL \
     }

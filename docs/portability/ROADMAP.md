@@ -12,7 +12,7 @@ Status: concluída.
 
 ## Etapa 02 — Arquitetura
 
-Status: concluída por este script.
+Status: concluída.
 
 - modelo de dois builds documentado;
 - limites de plataforma definidos;
@@ -22,12 +22,14 @@ Status: concluída por este script.
 
 ## Etapa 03 — ABI e esqueleto nativo
 
-- criar headers públicos;
-- criar `ShRuntime` opaco;
-- criar serviços do host;
-- criar CMake independente;
-- portar o RNG;
-- adicionar testes.
+Status: concluída.
+
+- headers públicos versionados;
+- `ShRuntime` opaco;
+- serviços do host;
+- CMake independente;
+- RNG determinístico;
+- testes nativos.
 
 ## Etapa 04 — Timing determinístico
 
@@ -42,20 +44,33 @@ Status: concluída.
 
 ## Etapa 05 — Entrada e arquivos
 
-- criar estado portátil de controles;
-- adicionar callbacks de arquivos;
-- isolar CD-ROM e memory card.
+Status: concluída.
 
-## Etapa 06 — Registro de overlays
+- estado portátil de controles;
+- transições `pressed`, `held` e `released`;
+- deadzone analógica;
+- callbacks de arquivos;
+- domínio separado para assets e saves;
+- escrita atômica de armazenamento.
 
-- criar IDs estáveis;
-- registrar mapas e telas;
-- remover cópia de código no build portátil.
+## Etapa 06 — Memória e registro de overlays
+
+Status: concluída.
+
+- espaço PS1 lógico independente de ponteiros host;
+- RAM padrão de 2 MiB;
+- tradução endereço/offset;
+- leitura, escrita e fill validados;
+- slots de overlay `ENGINE`, `SCREEN` e `MAP`;
+- callbacks `init`, `tick` e `shutdown`;
+- troca determinística de módulos linkados estaticamente.
 
 ## Etapa 07 — Máquina de estados headless
 
-- inicializar estado mínimo;
+- inicializar estado mínimo do jogo;
+- registrar primeiros módulos reais;
 - executar transições selecionadas;
+- criar runner headless;
 - criar testes diferenciais.
 
 ## Etapa 08 — Vídeo e áudio de referência
@@ -68,6 +83,7 @@ Status: concluída.
 
 - janela e controles;
 - persistência;
+- vídeo e áudio de plataforma;
 - validação de progressão do jogo.
 
 ## Etapa 10 — Template de ports

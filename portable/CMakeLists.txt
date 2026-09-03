@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(
     silent_hill_portable
-    VERSION 0.3.0
+    VERSION 0.4.0
     LANGUAGES C)
 
 include(CTest)
@@ -65,6 +65,8 @@ add_library(
         src/sh_clock.c
         src/sh_input.c
         src/sh_io.c
+        src/sh_memory.c
+        src/sh_overlay.c
         src/sh_rng.c
         src/sh_runtime.c)
 
@@ -148,7 +150,9 @@ if(BUILD_TESTING)
             abi_layout
             timing
             input
-            io)
+            io
+            memory
+            overlay)
 
         add_executable(
             "sh_${test_name}_tests"

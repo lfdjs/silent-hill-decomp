@@ -141,6 +141,10 @@ static void sh_runtime_execute_ticks(
     {
         runtime->tick_count++;
         sh_runtime_latch_input(runtime);
+        sh_overlay_manager_tick(
+            &runtime->overlays,
+            runtime,
+            runtime->tick_count);
 
         if (runtime->tick != NULL)
         {
@@ -208,11 +212,13 @@ ShResult sh_runtime_create(
     ShRuntime* runtime;
     ShTimingConfig default_timing = SH_TIMING_CONFIG_INIT;
     ShInputConfig default_input = SH_INPUT_CONFIG_INIT;
+    ShMemoryConfig default_memory = SH_MEMORY_CONFIG_INIT;
     ShInputState initial_input = SH_INPUT_STATE_INIT;
     ShInputSnapshot initial_snapshot =
         SH_INPUT_SNAPSHOT_INIT;
     const ShTimingConfig* timing;
     const ShInputConfig* input;
+    const ShMemoryConfig* memory;
 
     if (out_runtime == NULL)
     {
@@ -290,6 +296,23 @@ ShResult sh_runtime_create(
         return SH_RESULT_INVALID_ARGUMENT;
     }
 
+    memory =
+        config->memory != NULL ?
+        config->memory :
+        &default_memory;
+
+    if (!sh_runtime_size_is_supported(
+            memory->struct_size,
+            sizeof(ShMemoryConfig)))
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+
+    if (memory->abi_version != SH_ABI_VERSION_CURRENT)
+    {
+        return SH_RESULT_UNSUPPORTED_VERSION;
+    }
+
     runtime = (ShRuntime*)calloc(1u, sizeof(*runtime));
 
     if (runtime == NULL)
@@ -302,6 +325,20 @@ ShResult sh_runtime_create(
         free(runtime);
         return SH_RESULT_INVALID_ARGUMENT;
     }
+
+    {
+        ShResult memory_result = sh_memory_init(
+            &runtime->memory,
+            memory);
+
+        if (memory_result != SH_RESULT_OK)
+        {
+            free(runtime);
+            return memory_result;
+        }
+    }
+
+    sh_overlay_manager_init(&runtime->overlays);
 
     memcpy(&runtime->host, config->host, sizeof(runtime->host));
     memcpy(
@@ -323,6 +360,13 @@ ShResult sh_runtime_create(
 
 void sh_runtime_destroy(ShRuntime* runtime)
 {
+    if (runtime == NULL)
+    {
+        return;
+    }
+
+    sh_overlay_manager_destroy(&runtime->overlays, runtime);
+    sh_memory_destroy(&runtime->memory);
     free(runtime);
 }
 

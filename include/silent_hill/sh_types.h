@@ -18,14 +18,16 @@
 #endif
 
 #define SH_VERSION_MAJOR 0u
-#define SH_VERSION_MINOR 3u
+#define SH_VERSION_MINOR 4u
 #define SH_VERSION_PATCH 0u
-#define SH_VERSION_STRING "0.3.0"
+#define SH_VERSION_STRING "0.4.0"
 
 #define SH_ABI_VERSION_ENCODE(major, minor) \
     ((((uint32_t)(major)) << 16u) | ((uint32_t)(minor)))
 
 #define SH_ABI_VERSION_CURRENT \
     SH_ABI_VERSION_ENCODE(SH_VERSION_MAJOR, SH_VERSION_MINOR)
+
+typedef struct ShRuntime ShRuntime;
 
 #endif
