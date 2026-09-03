@@ -221,6 +221,46 @@ ShResult sh_runtime_game_set_boot_signals(
     return SH_RESULT_OK;
 }
 
+ShResult sh_runtime_game_set_konami_signals(
+    ShRuntime* runtime,
+    const ShGameKonamiSignals* signals)
+{
+    if (runtime == NULL || signals == NULL)
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+
+    if (!sh_runtime_is_ready(runtime))
+    {
+        return SH_RESULT_NOT_READY;
+    }
+
+    if (!runtime->game.snapshot.reference_enabled)
+    {
+        return SH_RESULT_INVALID_STATE;
+    }
+
+    if (!sh_runtime_size_is_supported(
+            signals->struct_size,
+            sizeof(ShGameKonamiSignals)))
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+
+    if (signals->abi_version != SH_ABI_VERSION_CURRENT)
+    {
+        return SH_RESULT_UNSUPPORTED_VERSION;
+    }
+
+    runtime->game.konami_signals = *signals;
+    runtime->game.konami_signals.struct_size =
+        (uint32_t)sizeof(ShGameKonamiSignals);
+    runtime->game.konami_signals.abi_version =
+        SH_ABI_VERSION_CURRENT;
+
+    return SH_RESULT_OK;
+}
+
 ShResult sh_runtime_game_get_snapshot(
     const ShRuntime* runtime,
     ShGameSnapshot* out_snapshot)

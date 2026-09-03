@@ -15,7 +15,7 @@ static int parse_tick_count(int argc, char** argv, uint32_t* out_ticks)
         return 0;
     }
 
-    *out_ticks = 8u;
+    *out_ticks = 11u;
 
     if (argc == 1)
     {
@@ -74,6 +74,7 @@ int main(int argc, char** argv)
     ShTimingConfig timing = SH_TIMING_CONFIG_INIT;
     ShRuntimeConfig config = SH_RUNTIME_CONFIG_INIT;
     ShGameBootSignals signals = SH_GAME_BOOT_SIGNALS_INIT;
+    ShGameKonamiSignals konami_signals = SH_GAME_KONAMI_SIGNALS_INIT;
     ShGameSnapshot snapshot = SH_GAME_SNAPSHOT_INIT;
     ShAdvanceInfo advance = SH_ADVANCE_INFO_INIT;
     ShRuntime* runtime = NULL;
@@ -121,7 +122,7 @@ int main(int argc, char** argv)
         SH_VERSION_MINOR,
         SH_VERSION_PATCH);
     printf(
-        "reference: GameState_Init/Boot=0 -> KonamiLogo=1\n");
+        "reference: Init/Boot=0 -> KonamiLogo=1 -> KcetLogo=2\n");
 
     for (idx = 0u; idx < ticks; idx++)
     {
@@ -139,7 +140,31 @@ int main(int argc, char** argv)
             signals.file_queue_empty = true;
         }
 
+        if (snapshot.state == SH_GAME_STATE_KONAMI_LOGO)
+        {
+            if (snapshot.state_steps[0] == 1u)
+            {
+                konami_signals.fade_none = true;
+            }
+            else if (snapshot.state_steps[0] == 2u)
+            {
+                konami_signals.any_input = true;
+            }
+            else if (snapshot.state_steps[0] == 3u)
+            {
+                konami_signals.fade_finished = true;
+                konami_signals.file_queue_empty = true;
+            }
+        }
+
         result = sh_runtime_game_set_boot_signals(runtime, &signals);
+
+        if (result == SH_RESULT_OK)
+        {
+            result = sh_runtime_game_set_konami_signals(
+                runtime,
+                &konami_signals);
+        }
 
         if (result != SH_RESULT_OK)
         {

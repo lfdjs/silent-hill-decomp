@@ -3,10 +3,12 @@
 
 #include "silent_hill/sh_api.h"
 
+#include "sh_audio_internal.h"
 #include "sh_clock.h"
 #include "sh_game_internal.h"
 #include "sh_memory_internal.h"
 #include "sh_overlay_internal.h"
+#include "sh_presentation_internal.h"
 
 struct ShRuntime
 {
@@ -14,6 +16,8 @@ struct ShRuntime
     ShRng rng;
     ShClock clock;
     ShGameController game;
+    ShAudioQueue audio;
+    ShPresentationQueue presentation;
     ShMemory memory;
     ShOverlayManager overlays;
     ShTickFn tick;

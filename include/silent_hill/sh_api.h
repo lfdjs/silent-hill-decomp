@@ -1,12 +1,14 @@
 #ifndef SILENT_HILL_SH_API_H
 #define SILENT_HILL_SH_API_H
 
+#include "silent_hill/sh_audio.h"
 #include "silent_hill/sh_game.h"
 #include "silent_hill/sh_host.h"
 #include "silent_hill/sh_input.h"
 #include "silent_hill/sh_io.h"
 #include "silent_hill/sh_memory.h"
 #include "silent_hill/sh_overlay.h"
+#include "silent_hill/sh_presentation.h"
 #include "silent_hill/sh_result.h"
 #include "silent_hill/sh_rng.h"
 #include "silent_hill/sh_timing.h"

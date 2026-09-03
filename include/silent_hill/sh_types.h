@@ -18,9 +18,9 @@
 #endif
 
 #define SH_VERSION_MAJOR 0u
-#define SH_VERSION_MINOR 5u
+#define SH_VERSION_MINOR 6u
 #define SH_VERSION_PATCH 0u
-#define SH_VERSION_STRING "0.5.0"
+#define SH_VERSION_STRING "0.6.0"
 
 #define SH_ABI_VERSION_ENCODE(major, minor) \
     ((((uint32_t)(major)) << 16u) | ((uint32_t)(minor)))

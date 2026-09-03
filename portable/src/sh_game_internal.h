@@ -9,6 +9,7 @@ struct ShRuntime;
 typedef struct ShGameController
 {
     ShGameBootSignals boot_signals;
+    ShGameKonamiSignals konami_signals;
     ShGameSnapshot snapshot;
     bool reference_registered;
 } ShGameController;

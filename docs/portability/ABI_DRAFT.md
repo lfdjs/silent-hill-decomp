@@ -1,6 +1,6 @@
 # ABI C Portátil
 
-A etapa 07 implementa a ABI experimental `0.5.0`.
+A etapa 08 implementa a ABI experimental `0.6.0`.
 
 ## Lifecycle
 
@@ -69,6 +69,13 @@ const char* sh_sys_state_name(...);
 decompilação. O primeiro módulo de referência porta somente o controle de
 `GameState_Boot_Update` e para explicitamente ao alcançar um estado ainda não
 implementado.
+
+## Apresentacao e audio
+
+A ABI 0.6 adiciona filas observaveis de comandos. O core emite intencoes de
+apresentacao (`configure-display`, `fade-start`, `draw-boot-logo`,
+`present-frame`) e tarefas de audio. O host consome essas filas; nenhuma API de
+SDL, OpenGL, Vulkan, ALSA ou outra plataforma entra no core.
 
 ## Regras
 

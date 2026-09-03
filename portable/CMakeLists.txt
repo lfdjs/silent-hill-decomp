@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(
     silent_hill_portable
-    VERSION 0.5.0
+    VERSION 0.6.0
     LANGUAGES C)
 
 include(CTest)
@@ -62,6 +62,7 @@ endfunction()
 add_library(
     silent_hill_core_objects
     OBJECT
+        src/sh_audio.c
         src/sh_clock.c
         src/sh_game.c
         src/sh_reference_game.c
@@ -69,6 +70,7 @@ add_library(
         src/sh_io.c
         src/sh_memory.c
         src/sh_overlay.c
+        src/sh_presentation.c
         src/sh_rng.c
         src/sh_runtime.c)
 
@@ -167,7 +169,9 @@ if(BUILD_TESTING)
             memory
             overlay
             game
-            reference_trace)
+            reference_trace
+            presentation_audio
+            konami_trace)
 
         add_executable(
             "sh_${test_name}_tests"

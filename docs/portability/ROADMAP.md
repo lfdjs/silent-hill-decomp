@@ -80,9 +80,15 @@ Status: concluída.
 
 ## Etapa 08 — Vídeo e áudio de referência
 
-- capturar ordering tables;
-- implementar renderer de referência;
-- criar fronteira de áudio.
+Status: concluída.
+
+- ABI 0.6 com filas de comandos de apresentação e áudio;
+- fronteira de display/fade/logo/present sem API de plataforma;
+- tarefas de áudio do boot expostas para o host;
+- `GameState_KonamiLogo_Update` portado como referência;
+- transição determinística `KonamiLogo -> KcetLogo`;
+- testes de filas e trace do logo;
+- captura de primitivas/order tables permanece como expansão da camada de apresentação na Etapa 09.
 
 ## Etapa 09 — Runner de PC
 

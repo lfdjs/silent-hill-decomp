@@ -62,8 +62,28 @@ _Static_assert(
     "struct_size must be the first game boot signal field");
 
 _Static_assert(
+    offsetof(ShGameKonamiSignals, struct_size) == 0u,
+    "struct_size must be the first Konami signal field");
+
+_Static_assert(
     offsetof(ShGameSnapshot, struct_size) == 0u,
     "struct_size must be the first game snapshot field");
+
+_Static_assert(
+    offsetof(ShAudioCommand, struct_size) == 0u,
+    "struct_size must be the first audio command field");
+
+_Static_assert(
+    offsetof(ShAudioStats, struct_size) == 0u,
+    "struct_size must be the first audio stats field");
+
+_Static_assert(
+    offsetof(ShPresentationCommand, struct_size) == 0u,
+    "struct_size must be the first presentation command field");
+
+_Static_assert(
+    offsetof(ShPresentationStats, struct_size) == 0u,
+    "struct_size must be the first presentation stats field");
 
 _Static_assert(
     offsetof(ShRuntimeConfig, struct_size) == 0u,
@@ -99,7 +119,12 @@ int main(void)
     ShOverlayInfo overlay_info = SH_OVERLAY_INFO_INIT;
     ShOverlayStats overlay_stats = SH_OVERLAY_STATS_INIT;
     ShGameBootSignals game_signals = SH_GAME_BOOT_SIGNALS_INIT;
+    ShGameKonamiSignals konami_signals = SH_GAME_KONAMI_SIGNALS_INIT;
     ShGameSnapshot game_snapshot = SH_GAME_SNAPSHOT_INIT;
+    ShAudioCommand audio_command = SH_AUDIO_COMMAND_INIT;
+    ShAudioStats audio_stats = SH_AUDIO_STATS_INIT;
+    ShPresentationCommand presentation_command = SH_PRESENTATION_COMMAND_INIT;
+    ShPresentationStats presentation_stats = SH_PRESENTATION_STATS_INIT;
     ShRuntimeConfig config = SH_RUNTIME_CONFIG_INIT;
     ShAdvanceInfo advance = SH_ADVANCE_INFO_INIT;
     ShRuntimeStats stats = SH_RUNTIME_STATS_INIT;
@@ -117,7 +142,12 @@ int main(void)
     assert(overlay_info.struct_size == (uint32_t)sizeof(overlay_info));
     assert(overlay_stats.struct_size == (uint32_t)sizeof(overlay_stats));
     assert(game_signals.struct_size == (uint32_t)sizeof(game_signals));
+    assert(konami_signals.struct_size == (uint32_t)sizeof(konami_signals));
     assert(game_snapshot.struct_size == (uint32_t)sizeof(game_snapshot));
+    assert(audio_command.struct_size == (uint32_t)sizeof(audio_command));
+    assert(audio_stats.struct_size == (uint32_t)sizeof(audio_stats));
+    assert(presentation_command.struct_size == (uint32_t)sizeof(presentation_command));
+    assert(presentation_stats.struct_size == (uint32_t)sizeof(presentation_stats));
     assert(config.struct_size == (uint32_t)sizeof(config));
     assert(advance.struct_size == (uint32_t)sizeof(advance));
     assert(stats.struct_size == (uint32_t)sizeof(stats));
@@ -134,7 +164,12 @@ int main(void)
     assert(overlay_info.abi_version == SH_ABI_VERSION_CURRENT);
     assert(overlay_stats.abi_version == SH_ABI_VERSION_CURRENT);
     assert(game_signals.abi_version == SH_ABI_VERSION_CURRENT);
+    assert(konami_signals.abi_version == SH_ABI_VERSION_CURRENT);
     assert(game_snapshot.abi_version == SH_ABI_VERSION_CURRENT);
+    assert(audio_command.abi_version == SH_ABI_VERSION_CURRENT);
+    assert(audio_stats.abi_version == SH_ABI_VERSION_CURRENT);
+    assert(presentation_command.abi_version == SH_ABI_VERSION_CURRENT);
+    assert(presentation_stats.abi_version == SH_ABI_VERSION_CURRENT);
     assert(config.abi_version == SH_ABI_VERSION_CURRENT);
     assert(advance.abi_version == SH_ABI_VERSION_CURRENT);
     assert(stats.abi_version == SH_ABI_VERSION_CURRENT);

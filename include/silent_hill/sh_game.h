@@ -69,6 +69,12 @@ typedef uint32_t ShGameActions;
 #define SH_GAME_ACTION_WAIT_FADE_OR_FILES (UINT32_C(1) << 5u)
 #define SH_GAME_ACTION_STATE_TRANSITION (UINT32_C(1) << 6u)
 #define SH_GAME_ACTION_UNIMPLEMENTED_STATE (UINT32_C(1) << 7u)
+#define SH_GAME_ACTION_QUEUE_KONAMI_ASSETS (UINT32_C(1) << 8u)
+#define SH_GAME_ACTION_DRAW_BOOT_LOGO (UINT32_C(1) << 9u)
+#define SH_GAME_ACTION_PRESENT_FRAME (UINT32_C(1) << 10u)
+#define SH_GAME_ACTION_WAIT_FADE_NONE (UINT32_C(1) << 11u)
+#define SH_GAME_ACTION_WAIT_LOGO_DELAY (UINT32_C(1) << 12u)
+#define SH_GAME_ACTION_WAIT_FILE_QUEUE (UINT32_C(1) << 13u)
 
 typedef struct ShGameBootSignals
 {
@@ -83,6 +89,26 @@ typedef struct ShGameBootSignals
     { \
         (uint32_t)sizeof(ShGameBootSignals), \
         SH_ABI_VERSION_CURRENT, \
+        false, \
+        false, \
+        false \
+    }
+
+typedef struct ShGameKonamiSignals
+{
+    uint32_t struct_size;
+    uint32_t abi_version;
+    bool fade_none;
+    bool fade_finished;
+    bool file_queue_empty;
+    bool any_input;
+} ShGameKonamiSignals;
+
+#define SH_GAME_KONAMI_SIGNALS_INIT \
+    { \
+        (uint32_t)sizeof(ShGameKonamiSignals), \
+        SH_ABI_VERSION_CURRENT, \
+        false, \
         false, \
         false, \
         false \
@@ -134,6 +160,10 @@ SH_API ShResult sh_runtime_game_disable_reference(
 SH_API ShResult sh_runtime_game_set_boot_signals(
     ShRuntime* runtime,
     const ShGameBootSignals* signals);
+
+SH_API ShResult sh_runtime_game_set_konami_signals(
+    ShRuntime* runtime,
+    const ShGameKonamiSignals* signals);
 
 SH_API ShResult sh_runtime_game_get_snapshot(
     const ShRuntime* runtime,

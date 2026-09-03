@@ -21,7 +21,19 @@ static const ExpectedTrace g_expected[] = {
       SH_GAME_ACTION_QUEUE_BOOT_ASSETS | SH_GAME_ACTION_START_FADE, 0u },
     { SH_GAME_STATE_KONAMI_LOGO, 0u, 0u,
       SH_GAME_ACTION_STATE_TRANSITION, 0u },
-    { SH_GAME_STATE_KONAMI_LOGO, 0u, 0u,
+    { SH_GAME_STATE_KONAMI_LOGO, 1u, 0u,
+      SH_GAME_ACTION_SCREEN_INIT | SH_GAME_ACTION_START_FADE |
+      SH_GAME_ACTION_QUEUE_KONAMI_ASSETS | SH_GAME_ACTION_DRAW_BOOT_LOGO |
+      SH_GAME_ACTION_PRESENT_FRAME, 0u },
+    { SH_GAME_STATE_KONAMI_LOGO, 2u, 0u,
+      SH_GAME_ACTION_DRAW_BOOT_LOGO | SH_GAME_ACTION_PRESENT_FRAME, 0u },
+    { SH_GAME_STATE_KONAMI_LOGO, 3u, 0u,
+      SH_GAME_ACTION_START_FADE | SH_GAME_ACTION_DRAW_BOOT_LOGO |
+      SH_GAME_ACTION_PRESENT_FRAME, 0u },
+    { SH_GAME_STATE_KCET_LOGO, 0u, 0u,
+      SH_GAME_ACTION_STATE_TRANSITION | SH_GAME_ACTION_DRAW_BOOT_LOGO |
+      SH_GAME_ACTION_PRESENT_FRAME, 0u },
+    { SH_GAME_STATE_KCET_LOGO, 0u, 0u,
       SH_GAME_ACTION_UNIMPLEMENTED_STATE, 0u }
 };
 
@@ -30,7 +42,8 @@ int main(void)
     ShHostServices host = SH_HOST_SERVICES_INIT;
     ShTimingConfig timing = SH_TIMING_CONFIG_INIT;
     ShRuntimeConfig config = SH_RUNTIME_CONFIG_INIT;
-    ShGameBootSignals signals = SH_GAME_BOOT_SIGNALS_INIT;
+    ShGameBootSignals boot = SH_GAME_BOOT_SIGNALS_INIT;
+    ShGameKonamiSignals konami = SH_GAME_KONAMI_SIGNALS_INIT;
     ShRuntime* runtime = NULL;
     size_t idx;
 
@@ -41,8 +54,7 @@ int main(void)
     assert(sh_runtime_create(&config, &runtime) == SH_RESULT_OK);
     assert(sh_runtime_boot(runtime) == SH_RESULT_OK);
     assert(sh_runtime_game_enable_reference(runtime) == SH_RESULT_OK);
-
-    signals.audio_streaming_idle = true;
+    boot.audio_streaming_idle = true;
 
     for (idx = 0u; idx < sizeof(g_expected) / sizeof(g_expected[0]); idx++)
     {
@@ -51,17 +63,27 @@ int main(void)
 
         if (idx == 5u)
         {
-            signals.fade_finished = true;
-            signals.file_queue_empty = true;
+            boot.fade_finished = true;
+            boot.file_queue_empty = true;
+        }
+        if (idx == 7u)
+        {
+            konami.fade_none = true;
+        }
+        if (idx == 8u)
+        {
+            konami.any_input = true;
+        }
+        if (idx == 9u)
+        {
+            konami.fade_finished = true;
+            konami.file_queue_empty = true;
         }
 
-        assert(
-            sh_runtime_game_set_boot_signals(runtime, &signals) ==
-            SH_RESULT_OK);
+        assert(sh_runtime_game_set_boot_signals(runtime, &boot) == SH_RESULT_OK);
+        assert(sh_runtime_game_set_konami_signals(runtime, &konami) == SH_RESULT_OK);
         assert(sh_runtime_step(runtime, &advance) == SH_RESULT_OK);
-        assert(
-            sh_runtime_game_get_snapshot(runtime, &snapshot) ==
-            SH_RESULT_OK);
+        assert(sh_runtime_game_get_snapshot(runtime, &snapshot) == SH_RESULT_OK);
 
         assert(snapshot.last_tick_index == (uint64_t)(idx + 1u));
         assert(snapshot.state == g_expected[idx].state);
