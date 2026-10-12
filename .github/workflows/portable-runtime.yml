@@ -1,0 +1,28 @@
+name: Portable runtime (standalone)
+
+on:
+  push:
+    branches: ["portability/**"]
+  pull_request:
+    paths:
+      - "portable/**"
+      - "ports/**"
+      - "include/silent_hill/**"
+      - "tests/portable/**"
+      - ".github/workflows/portable-runtime.yml"
+
+jobs:
+  portable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure (no desktop backend)
+        run: cmake -S portable -B build-portable-ci -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DSH_BUILD_PC_RUNNER=OFF -DSH_BUILD_PORT_TEMPLATE=ON -DSH_ENABLE_WERROR=ON
+      - name: Build
+        run: cmake --build build-portable-ci --config Debug --parallel 2
+      - name: Test
+        run: ctest --test-dir build-portable-ci -C Debug --output-on-failure

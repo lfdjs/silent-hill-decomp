@@ -227,3 +227,31 @@ if(SH_BUILD_PC_RUNNER)
             PASS_REGULAR_EXPRESSION "Reached unsupported state: KcetLogo")
     endif()
 endif()
+
+# Stage 10: platform-neutral example; no X11, SDL, GPU or SPU required.
+option(SH_BUILD_PORT_TEMPLATE "Build the portable host integration template." ON)
+if(SH_BUILD_PORT_TEMPLATE)
+    add_library(sh_port_template STATIC
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/platform-template/sh_port_template.c")
+    target_include_directories(sh_port_template PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/platform-template")
+    target_link_libraries(sh_port_template PUBLIC silent_hill_core)
+    sh_configure_target(sh_port_template)
+
+    add_executable(silent-hill-port-template
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/platform-template/sh_port_template_main.c")
+    target_link_libraries(silent-hill-port-template PRIVATE sh_port_template)
+    sh_configure_target(silent-hill-port-template)
+
+    if(BUILD_TESTING)
+        add_executable(sh_port_template_tests
+            "${SH_TEST_DIR}/test_port_template.c")
+        target_link_libraries(sh_port_template_tests PRIVATE sh_port_template)
+        sh_configure_target(sh_port_template_tests)
+        add_test(NAME sh_port_template_tests COMMAND sh_port_template_tests)
+        add_test(NAME sh_port_template_cli_smoke
+            COMMAND silent-hill-port-template)
+        set_tests_properties(sh_port_template_cli_smoke PROPERTIES
+            PASS_REGULAR_EXPRESSION "state=KcetLogo")
+    endif()
+endif()

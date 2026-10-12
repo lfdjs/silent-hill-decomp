@@ -103,6 +103,11 @@ Status: primeira fatia diagnóstica implementada.
 
 ## Etapa 10 — Template de ports
 
-- isolar implementação de plataforma;
-- documentar contrato;
-- criar template reutilizável.
+Status: primeira arquitetura experimental concluída (não jogável).
+
+- host C11 de exemplo sem dependência de X11/SDL;
+- callbacks de vídeo, áudio, input e transição;
+- smoke executável e dois testes de integração;
+- build independente de PC/X11 e validação de ABI;
+- checklist de destino e CI portátil;
+- sincronização upstream e port integral continuam como próximos trabalhos.
