@@ -111,3 +111,23 @@ Status: primeira arquitetura experimental concluída (não jogável).
 - build independente de PC/X11 e validação de ABI;
 - checklist de destino e CI portátil;
 - sincronização upstream e port integral continuam como próximos trabalhos.
+
+## Etapa 11 — Upstream seguro
+
+Status: merge experimental sem conflitos no worktree isolado, matching base
+50/50 reconstruido; matching apos merge e testes integrados pendentes.
+O `git diff --cached --check` do upstream novo exige diagnostico separado,
+sem descartar alteracoes upstream nem publicar um merge sem validacao.
+
+## Etapa 12A — Primeiro recurso grafico real
+
+Status: implementacao proposta para validacao no host PC.
+
+- decode real de `TIM` (4/8/16/24 bpp) em biblioteca do host;
+- visualizacao do TIM original fornecido pelo usuario no X11;
+- conversor CLI TIM para PPM;
+- testes com fixtures sinteticas sem assets distribuidos;
+- ABI 0.6.0 e matching PS1 preservados, sem alteracao de `portable/src`.
+
+Proximos cortes: KCET e memory card; fila real de leitura, intro/FMVs;
+renderer de primitivas/VRAM; SPU; menus e gameplay.

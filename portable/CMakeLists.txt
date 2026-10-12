@@ -201,9 +201,20 @@ if(SH_BUILD_PC_RUNNER)
         "${SH_PUBLIC_INCLUDE_DIR}")
     sh_configure_target(sh_pc_app)
 
+    add_library(sh_pc_tim STATIC
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/pc/sh_tim.c")
+    target_include_directories(sh_pc_tim PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/pc")
+    sh_configure_target(sh_pc_tim)
+
+    add_executable(silent-hill-tim
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/pc/sh_tim_tool.c")
+    target_link_libraries(silent-hill-tim PRIVATE sh_pc_tim)
+    sh_configure_target(silent-hill-tim)
+
     add_executable(silent-hill-pc
         "${CMAKE_CURRENT_LIST_DIR}/../ports/pc/sh_pc_runner.c")
-    target_link_libraries(silent-hill-pc PRIVATE sh_pc_app)
+    target_link_libraries(silent-hill-pc PRIVATE sh_pc_app sh_pc_tim)
     sh_configure_target(silent-hill-pc)
 
     if(UNIX AND NOT APPLE)
@@ -216,6 +227,11 @@ if(SH_BUILD_PC_RUNNER)
     endif()
 
     if(BUILD_TESTING)
+        add_executable(sh_tim_tests
+            "${SH_TEST_DIR}/test_tim.c")
+        target_link_libraries(sh_tim_tests PRIVATE sh_pc_tim)
+        sh_configure_target(sh_tim_tests)
+        add_test(NAME sh_tim_tests COMMAND sh_tim_tests)
         add_executable(sh_pc_host_tests
             "${SH_TEST_DIR}/test_pc_host.c")
         target_link_libraries(sh_pc_host_tests PRIVATE sh_pc_app)

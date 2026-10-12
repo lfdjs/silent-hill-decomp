@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "sh_pc_app.h"
+#include "sh_tim.h"
 
 #include <errno.h>
 #include <inttypes.h>
@@ -30,6 +31,8 @@ typedef struct ShPcWindow
     bool logo_visible;
     bool interlaced;
     uint16_t logical_width;
+    ShTimImage konami_tim;
+    bool tim_loaded;
 #if defined(SH_PC_HAVE_X11)
     Display* display;
     Window window;
@@ -159,10 +162,113 @@ static void window_poll(ShPcWindow* screen)
     }
 }
 
+/* The TIM decoder yields actual PS1 texture pixels. Mapping RGB values to
+ * X11's TrueColor visual is a host concern, not part of the runtime ABI. */
+static unsigned long visual_channel(uint32_t channel, unsigned long mask)
+{
+    unsigned int shift = 0u;
+    unsigned long max_value;
+    if (mask == 0ul)
+    {
+        return 0ul;
+    }
+    while ((mask & 1ul) == 0ul)
+    {
+        mask >>= 1u;
+        shift++;
+    }
+    max_value = mask;
+    return (((unsigned long)channel * max_value + 127ul) / 255ul) << shift;
+}
+
+static void window_draw_tim(ShPcWindow* screen, int top)
+{
+    int display_id = DefaultScreen(screen->display);
+    Visual* visual = DefaultVisual(screen->display, display_id);
+    unsigned int view_width = screen->width > 48u ? screen->width - 48u : 1u;
+    unsigned int view_height = screen->height > (unsigned int)top + 100u ?
+        screen->height - (unsigned int)top - 100u : 1u;
+    unsigned int out_width;
+    unsigned int out_height;
+    unsigned int x;
+    unsigned int y;
+    XImage* ximage;
+    int pos_x;
+
+    if (!screen->tim_loaded || visual->class != TrueColor ||
+        view_width == 0u || view_height == 0u)
+    {
+        return;
+    }
+
+    out_width = screen->konami_tim.width;
+    out_height = screen->konami_tim.height;
+    if (out_width > view_width)
+    {
+        out_height = (unsigned int)(((uint64_t)out_height * view_width) /
+            out_width);
+        out_width = view_width;
+    }
+    if (out_height > view_height)
+    {
+        out_width = (unsigned int)(((uint64_t)out_width * view_height) /
+            out_height);
+        out_height = view_height;
+    }
+    if (out_width == 0u || out_height == 0u)
+    {
+        return;
+    }
+
+    ximage = XCreateImage(screen->display, visual,
+        (unsigned int)DefaultDepth(screen->display, display_id), ZPixmap,
+        0, NULL, out_width, out_height, 32, 0);
+    if (ximage == NULL)
+    {
+        return;
+    }
+    ximage->data = (char*)calloc((size_t)ximage->bytes_per_line,
+        (size_t)out_height);
+    if (ximage->data == NULL)
+    {
+        XDestroyImage(ximage);
+        return;
+    }
+    for (y = 0u; y < out_height; y++)
+    {
+        unsigned int sy = (unsigned int)(((uint64_t)y *
+            screen->konami_tim.height) / out_height);
+        for (x = 0u; x < out_width; x++)
+        {
+            unsigned int sx = (unsigned int)(((uint64_t)x *
+                screen->konami_tim.width) / out_width);
+            uint32_t pixel = screen->konami_tim.pixels[
+                (size_t)sy * screen->konami_tim.width + sx];
+            unsigned long packed;
+            if ((pixel >> 24u) == 0u)
+            {
+                pixel = UINT32_C(0xFF000000);
+            }
+            packed = visual_channel((pixel >> 16u) & 255u,
+                visual->red_mask) |
+                visual_channel((pixel >> 8u) & 255u,
+                visual->green_mask) |
+                visual_channel(pixel & 255u, visual->blue_mask);
+            XPutPixel(ximage, (int)x, (int)y, packed);
+        }
+    }
+    pos_x = ((int)screen->width - (int)out_width) / 2;
+    XPutImage(screen->display, screen->window, screen->gc, ximage,
+        0, 0, pos_x, top, out_width, out_height);
+    XDestroyImage(ximage);
+}
+
 static void window_draw(ShPcWindow* screen)
 {
     const char* instructions = "ENTER / SPACE: skip logo | ESC: quit";
-    const char* disclaimer = "Reference placeholders only - no original assets";
+    const char* disclaimer = screen->tim_loaded ?
+        "Original TIM decoded; PS1 GPU/fades not yet emulated" :
+        "No original TIM supplied; graphics are diagnostic";
     int y = (int)(screen->height / 2u);
     XClearWindow(screen->display, screen->window);
     XDrawString(screen->display, screen->window, screen->gc,
@@ -171,9 +277,16 @@ static void window_draw(ShPcWindow* screen)
         24, 90, screen->state_label, (int)strlen(screen->state_label));
     if (screen->logo_visible)
     {
-        const char* logo = "[KONAMI LOGO: ASSET NOT LOADED]";
-        XDrawString(screen->display, screen->window, screen->gc,
-            24, y, logo, (int)strlen(logo));
+        if (screen->tim_loaded)
+        {
+            window_draw_tim(screen, 120);
+        }
+        else
+        {
+            const char* logo = "[KONAMI LOGO: ASSET NOT LOADED]";
+            XDrawString(screen->display, screen->window, screen->gc,
+                24, y, logo, (int)strlen(logo));
+        }
     }
     XDrawString(screen->display, screen->window, screen->gc,
         24, y + 60, instructions, (int)strlen(instructions));
@@ -238,6 +351,7 @@ int main(int argc, char** argv)
     bool fast = false;
     bool headless = false;
     int idx;
+    const char* konami_tim_path = NULL;
 
     for (idx = 1; idx < argc; idx++)
     {
@@ -248,6 +362,10 @@ int main(int argc, char** argv)
         else if (strcmp(argv[idx], "--fast") == 0)
         {
             fast = true;
+        }
+        else if (strcmp(argv[idx], "--konami-tim") == 0 && idx + 1 < argc)
+        {
+            konami_tim_path = argv[++idx];
         }
         else if (strcmp(argv[idx], "--max-ticks") == 0 && idx + 1 < argc)
         {
@@ -260,7 +378,7 @@ int main(int argc, char** argv)
         else
         {
             fprintf(stderr,
-                "usage: %s [--headless] [--fast] [--max-ticks N]\n", argv[0]);
+                "usage: %s [--headless] [--fast] [--max-ticks N] [--konami-tim file.TIM]\n", argv[0]);
             return EXIT_FAILURE;
         }
     }
@@ -269,17 +387,32 @@ int main(int argc, char** argv)
     screen.headless = headless;
     screen.width = 640u;
     screen.height = 480u;
+    if (konami_tim_path != NULL)
+    {
+        if (sh_tim_load_file(konami_tim_path, &screen.konami_tim) != 0)
+        {
+            fprintf(stderr, "Unable to decode Konami TIM: %s\n",
+                konami_tim_path);
+            return EXIT_FAILURE;
+        }
+        screen.tim_loaded = true;
+        printf("TIM loaded: %ux%u %u-bpp\n",
+            screen.konami_tim.width, screen.konami_tim.height,
+            screen.konami_tim.bits_per_pixel);
+    }
 
 #if defined(SH_PC_HAVE_X11)
     if (!headless && !window_init(&screen))
     {
         fputs("X11 display unavailable; use --headless\n", stderr);
+        sh_tim_image_free(&screen.konami_tim);
         return EXIT_FAILURE;
     }
 #else
     if (!headless)
     {
         fputs("X11 backend not built; use --headless\n", stderr);
+        sh_tim_image_free(&screen.konami_tim);
         return EXIT_FAILURE;
     }
 #endif
@@ -291,12 +424,15 @@ int main(int argc, char** argv)
 #if defined(SH_PC_HAVE_X11)
         if (!headless) window_destroy(&screen);
 #endif
+        sh_tim_image_free(&screen.konami_tim);
         return EXIT_FAILURE;
     }
 
     printf("Silent Hill PC diagnostic ABI %s\n", SH_VERSION_STRING);
     printf("Backend: %s\n", headless ? "headless" : "X11");
-    puts("NOTE: diagnostic placeholders; no original graphics/audio/gameplay");
+    puts(screen.tim_loaded ?
+        "NOTE: original TIM loaded; no PS1 GPU/audio/gameplay yet" :
+        "NOTE: diagnostic placeholders; no original graphics/audio/gameplay");
 
     while (app.ticks < max_ticks && !screen.exit_requested)
     {
@@ -345,5 +481,6 @@ int main(int argc, char** argv)
 #if defined(SH_PC_HAVE_X11)
     if (!headless) window_destroy(&screen);
 #endif
+    sh_tim_image_free(&screen.konami_tim);
     return result == SH_RESULT_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 }
