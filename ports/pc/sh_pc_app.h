@@ -19,6 +19,8 @@ typedef struct ShPcApp
     uint64_t fade_out_tick;
     bool fade_out_seen;
     bool reached_unsupported;
+    bool kcet_enabled;
+    ShKcetCardRoute kcet_route;
     ShPcVideoFn video_fn;
     ShPcAudioFn audio_fn;
     void* sink_userdata;
@@ -26,6 +28,7 @@ typedef struct ShPcApp
 
 ShResult sh_pc_app_init(ShPcApp* app, ShPcVideoFn video_fn,
                          ShPcAudioFn audio_fn, void* sink_userdata);
+ShResult sh_pc_app_enable_kcet(ShPcApp* app, ShKcetCardRoute route);
 ShResult sh_pc_app_tick(ShPcApp* app, ShInputButtons buttons);
 void sh_pc_app_destroy(ShPcApp* app);
 

@@ -261,6 +261,50 @@ ShResult sh_runtime_game_set_konami_signals(
     return SH_RESULT_OK;
 }
 
+ShResult sh_runtime_game_set_kcet_signals(
+    ShRuntime* runtime,
+    const ShGameKcetSignals* signals)
+{
+    if (runtime == NULL || signals == NULL)
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+    if (!sh_runtime_is_ready(runtime))
+    {
+        return SH_RESULT_NOT_READY;
+    }
+    if (!runtime->game.snapshot.reference_enabled)
+    {
+        return SH_RESULT_INVALID_STATE;
+    }
+    if (!sh_runtime_size_is_supported(
+            signals->struct_size, sizeof(ShGameKcetSignals)))
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+    if (signals->abi_version != SH_ABI_VERSION_CURRENT)
+    {
+        return SH_RESULT_UNSUPPORTED_VERSION;
+    }
+    if ((uint32_t)signals->card_route >
+        (uint32_t)SH_KCET_CARD_HAS_SAVE)
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+
+    runtime->game.kcet_signals = *signals;
+    runtime->game.kcet_signals.struct_size =
+        (uint32_t)sizeof(ShGameKcetSignals);
+    runtime->game.kcet_signals.abi_version = SH_ABI_VERSION_CURRENT;
+    runtime->game.kcet_enabled = true;
+    if (runtime->game.snapshot.state == SH_GAME_STATE_KCET_LOGO &&
+        runtime->game.snapshot.state_steps[0] != 5u)
+    {
+        runtime->game.snapshot.state_implemented = true;
+    }
+    return SH_RESULT_OK;
+}
+
 ShResult sh_runtime_game_get_snapshot(
     const ShRuntime* runtime,
     ShGameSnapshot* out_snapshot)

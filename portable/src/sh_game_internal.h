@@ -10,6 +10,9 @@ typedef struct ShGameController
 {
     ShGameBootSignals boot_signals;
     ShGameKonamiSignals konami_signals;
+    ShGameKcetSignals kcet_signals;
+    ShGameState kcet_next_state;
+    bool kcet_enabled;
     ShGameSnapshot snapshot;
     bool reference_registered;
 } ShGameController;

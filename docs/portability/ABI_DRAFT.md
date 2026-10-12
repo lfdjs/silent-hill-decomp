@@ -1,6 +1,6 @@
 # ABI C Portátil
 
-A etapa 08 implementa a ABI experimental `0.6.0`.
+A etapa 12B implementa a ABI experimental `0.7.0` (50 símbolos públicos).
 
 ## Lifecycle
 
@@ -66,9 +66,9 @@ const char* sh_sys_state_name(...);
 ```
 
 `ShGameState` e `ShSysState` preservam os valores numéricos dos enums atuais da
-decompilação. O primeiro módulo de referência porta somente o controle de
-`GameState_Boot_Update` e para explicitamente ao alcançar um estado ainda não
-implementado.
+decompilação. O módulo de referência porta o controle de boot, Konami e, mediante opt-in,
+KCET. Sem `ShGameKcetSignals`, o KCET mantém o comportamento anterior de
+estado não implementado. A introdução/FMVs ainda não foram portados.
 
 ## Apresentacao e audio
 
@@ -76,6 +76,15 @@ A ABI 0.6 adiciona filas observaveis de comandos. O core emite intencoes de
 apresentacao (`configure-display`, `fade-start`, `draw-boot-logo`,
 `present-frame`) e tarefas de audio. O host consome essas filas; nenhuma API de
 SDL, OpenGL, Vulkan, ALSA ou outra plataforma entra no core.
+
+## KCET opt-in — ABI 0.7.0
+
+`sh_runtime_game_set_kcet_signals` recebe `ShGameKcetSignals`, incluindo o
+resultado de memory card fornecido pelo host (`ShKcetCardRoute`) e os sinais
+de fade/fila. Não escaneia dispositivos nem carrega saves por si só. As rotas
+`NO_CARD` e `NO_SPACE` apontam para `MovieIntroFadeIn`; `NO_SAVE` aponta
+para `MovieIntro`; `HAS_SAVE` permanece bloqueada até existir suporte real
+a autoload. Isso acrescenta **um** símbolo público à ABI 0.6.0.
 
 ## Regras
 

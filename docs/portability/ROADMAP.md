@@ -131,3 +131,13 @@ Status: implementacao proposta para validacao no host PC.
 
 Proximos cortes: KCET e memory card; fila real de leitura, intro/FMVs;
 renderer de primitivas/VRAM; SPU; menus e gameplay.
+
+## Etapa 12B — KCET opt-in e roteamento para introdução
+
+Status: implementação experimental pronta para validação.
+
+- ABI experimental 0.7.0 com sinais de KCET;
+- rotas de cartão/no-save para MovieIntroFadeIn/MovieIntro;
+- interrupção explícita de autoload de save existente;
+- seleção opcional de `KONAMI2.TIM` no host X11;
+- sem decodificação de FMV ou gameplay.

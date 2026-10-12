@@ -52,13 +52,14 @@ static void sh_reference_emit_fade(
 
 static void sh_reference_emit_logo_frame(
     ShRuntime* runtime,
-    uint64_t tick_index)
+    uint64_t tick_index,
+    ShBootLogo logo)
 {
     ShPresentationCommand command = SH_PRESENTATION_COMMAND_INIT;
 
     command.type = SH_PRESENTATION_COMMAND_DRAW_BOOT_LOGO;
     command.tick_index = tick_index;
-    command.boot_logo = SH_BOOT_LOGO_KONAMI;
+    command.boot_logo = logo;
     (void)sh_presentation_emit(runtime, &command);
 
     command = (ShPresentationCommand)SH_PRESENTATION_COMMAND_INIT;
@@ -80,10 +81,12 @@ static void sh_reference_emit_audio_task(
     (void)sh_audio_emit(runtime, &command);
 }
 
-static bool sh_reference_state_is_implemented(ShGameState state)
+static bool sh_reference_state_is_implemented(
+    const ShGameController* controller, ShGameState state)
 {
     return state == SH_GAME_STATE_INIT ||
-           state == SH_GAME_STATE_KONAMI_LOGO;
+           state == SH_GAME_STATE_KONAMI_LOGO ||
+           (state == SH_GAME_STATE_KCET_LOGO && controller->kcet_enabled);
 }
 
 static void sh_reference_game_set_state(
@@ -102,7 +105,7 @@ static void sh_reference_game_set_state(
     controller->snapshot.last_actions |=
         SH_GAME_ACTION_STATE_TRANSITION;
     controller->snapshot.state_implemented =
-        sh_reference_state_is_implemented(next_state);
+        sh_reference_state_is_implemented(controller, next_state);
 }
 
 static void sh_reference_game_boot_tick(
@@ -295,7 +298,126 @@ static void sh_reference_game_konami_tick(
     controller->snapshot.last_actions |=
         SH_GAME_ACTION_DRAW_BOOT_LOGO |
         SH_GAME_ACTION_PRESENT_FRAME;
-    sh_reference_emit_logo_frame(runtime, tick_index);
+    sh_reference_emit_logo_frame(runtime, tick_index, SH_BOOT_LOGO_KONAMI);
+}
+
+/* Ported from GameState_KcetLogo_Update in b_konami.c.
+ * Card scans, file IO, fade timing and overlay loads remain host-provided.
+ * The has-save path is intentionally blocked pending real save loading. */
+static void sh_reference_game_kcet_tick(
+    ShRuntime* runtime,
+    ShGameController* controller,
+    uint64_t tick_index)
+{
+    uint32_t* steps = controller->snapshot.state_steps;
+    const ShGameKcetSignals* signal = &controller->kcet_signals;
+    ShGameActions* actions = &controller->snapshot.last_actions;
+
+    switch (steps[0])
+    {
+        case 0u: /* KcetLogoStateStep_Init */
+            *actions |= SH_GAME_ACTION_RESTORE_SETTINGS |
+                SH_GAME_ACTION_START_FADE |
+                SH_GAME_ACTION_QUEUE_KCET_ASSETS;
+            sh_reference_emit_fade(runtime, tick_index,
+                true, true, false, true,
+                SH_REFERENCE_KONAMI_FADE_TIMESTEP_Q12);
+            steps[0] = 1u;
+            break;
+
+        case 1u: /* CheckMemCards */
+            if (!signal->fade_none)
+            {
+                *actions |= SH_GAME_ACTION_WAIT_FADE_NONE;
+            }
+            else if (!signal->file_queue_empty)
+            {
+                *actions |= SH_GAME_ACTION_WAIT_FILE_QUEUE;
+            }
+            else
+            {
+                *actions |= SH_GAME_ACTION_CHECK_MEMORY_CARD;
+                switch (signal->card_route)
+                {
+                    case SH_KCET_CARD_NO_CARD: steps[0] = 2u; break;
+                    case SH_KCET_CARD_NO_SPACE: steps[0] = 3u; break;
+                    case SH_KCET_CARD_NO_SAVE: steps[0] = 4u; break;
+                    case SH_KCET_CARD_HAS_SAVE: steps[0] = 5u; break;
+                    case SH_KCET_CARD_WAIT:
+                    default:
+                        /* Keep waiting until the host has a scan result. */
+                        break;
+                }
+            }
+            break;
+
+        case 2u: /* NoMemCard: warning + STREAM -> MovieIntroFadeIn */
+        case 3u: /* NoMemCardFreeSpace: warning + STREAM */
+            *actions |= SH_GAME_ACTION_QUEUE_KCET_ASSETS |
+                SH_GAME_ACTION_QUEUE_STREAM_ASSETS |
+                SH_GAME_ACTION_SELECT_INTRO_ROUTE;
+            controller->kcet_next_state = SH_GAME_STATE_MOVIE_INTRO_FADE_IN;
+            steps[0] = 6u;
+            break;
+
+        case 4u: /* NoSavegame: STREAM + title seek -> MovieIntro */
+            *actions |= SH_GAME_ACTION_QUEUE_STREAM_ASSETS |
+                SH_GAME_ACTION_SELECT_INTRO_ROUTE;
+            controller->kcet_next_state = SH_GAME_STATE_MOVIE_INTRO;
+            steps[0] = 6u;
+            break;
+
+        case 5u: /* HasSavegame requires real async memcard + autoload. */
+            *actions |= SH_GAME_ACTION_UNSUPPORTED_SAVE_LOAD |
+                SH_GAME_ACTION_UNIMPLEMENTED_STATE;
+            controller->snapshot.state_implemented = false;
+            break;
+
+        case 6u: /* LogoDelay */
+            if (signal->any_input ||
+                controller->snapshot.state_tick_count >
+                    SH_REFERENCE_KONAMI_DELAY_TICKS)
+            {
+                *actions |= SH_GAME_ACTION_START_FADE;
+                sh_reference_emit_fade(runtime, tick_index,
+                    false, false, false, true,
+                    SH_REFERENCE_KONAMI_FADE_TIMESTEP_Q12);
+                steps[0] = 7u;
+            }
+            else
+            {
+                *actions |= SH_GAME_ACTION_WAIT_LOGO_DELAY;
+            }
+            break;
+
+        case 7u: /* FinishAfterFade */
+            if (!signal->fade_finished)
+            {
+                *actions |= SH_GAME_ACTION_WAIT_FADE_OR_FILES;
+            }
+            else if (!signal->file_queue_empty)
+            {
+                *actions |= SH_GAME_ACTION_WAIT_FILE_QUEUE;
+            }
+            else
+            {
+                sh_reference_emit_display(runtime, tick_index,
+                    (uint16_t)SH_REFERENCE_SCREEN_WIDTH, false);
+                *actions |= SH_GAME_ACTION_SCREEN_INIT;
+                sh_reference_game_set_state(controller,
+                    controller->kcet_next_state);
+            }
+            break;
+
+        default:
+            controller->snapshot.state_implemented = false;
+            *actions |= SH_GAME_ACTION_UNIMPLEMENTED_STATE;
+            break;
+    }
+
+    *actions |= SH_GAME_ACTION_DRAW_BOOT_LOGO |
+        SH_GAME_ACTION_PRESENT_FRAME;
+    sh_reference_emit_logo_frame(runtime, tick_index, SH_BOOT_LOGO_KCET);
 }
 
 void sh_game_controller_init(ShGameController* controller)
@@ -309,10 +431,14 @@ void sh_game_controller_reset(ShGameController* controller)
 {
     ShGameBootSignals boot_signals = SH_GAME_BOOT_SIGNALS_INIT;
     ShGameKonamiSignals konami_signals = SH_GAME_KONAMI_SIGNALS_INIT;
+    ShGameKcetSignals kcet_signals = SH_GAME_KCET_SIGNALS_INIT;
     ShGameSnapshot snapshot = SH_GAME_SNAPSHOT_INIT;
 
     controller->boot_signals = boot_signals;
     controller->konami_signals = konami_signals;
+    controller->kcet_signals = kcet_signals;
+    controller->kcet_next_state = SH_GAME_STATE_MOVIE_INTRO_FADE_IN;
+    controller->kcet_enabled = false;
     controller->snapshot = snapshot;
 }
 
@@ -363,6 +489,11 @@ void sh_reference_game_overlay_tick(
     else if (controller->snapshot.state == SH_GAME_STATE_KONAMI_LOGO)
     {
         sh_reference_game_konami_tick(runtime, controller, tick_index);
+    }
+    else if (controller->snapshot.state == SH_GAME_STATE_KCET_LOGO &&
+             controller->kcet_enabled)
+    {
+        sh_reference_game_kcet_tick(runtime, controller, tick_index);
     }
     else
     {

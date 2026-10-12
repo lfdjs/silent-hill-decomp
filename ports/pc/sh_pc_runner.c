@@ -32,7 +32,10 @@ typedef struct ShPcWindow
     bool interlaced;
     uint16_t logical_width;
     ShTimImage konami_tim;
+    ShTimImage kcet_tim;
+    ShBootLogo current_logo;
     bool tim_loaded;
+    bool kcet_tim_loaded;
 #if defined(SH_PC_HAVE_X11)
     Display* display;
     Window window;
@@ -192,17 +195,21 @@ static void window_draw_tim(ShPcWindow* screen, int top)
     unsigned int out_height;
     unsigned int x;
     unsigned int y;
+    const ShTimImage* image = screen->current_logo == SH_BOOT_LOGO_KCET ?
+        &screen->kcet_tim : &screen->konami_tim;
+    bool loaded = screen->current_logo == SH_BOOT_LOGO_KCET ?
+        screen->kcet_tim_loaded : screen->tim_loaded;
     XImage* ximage;
     int pos_x;
 
-    if (!screen->tim_loaded || visual->class != TrueColor ||
+    if (!loaded || visual->class != TrueColor ||
         view_width == 0u || view_height == 0u)
     {
         return;
     }
 
-    out_width = screen->konami_tim.width;
-    out_height = screen->konami_tim.height;
+    out_width = image->width;
+    out_height = image->height;
     if (out_width > view_width)
     {
         out_height = (unsigned int)(((uint64_t)out_height * view_width) /
@@ -237,13 +244,13 @@ static void window_draw_tim(ShPcWindow* screen, int top)
     for (y = 0u; y < out_height; y++)
     {
         unsigned int sy = (unsigned int)(((uint64_t)y *
-            screen->konami_tim.height) / out_height);
+            image->height) / out_height);
         for (x = 0u; x < out_width; x++)
         {
             unsigned int sx = (unsigned int)(((uint64_t)x *
-                screen->konami_tim.width) / out_width);
-            uint32_t pixel = screen->konami_tim.pixels[
-                (size_t)sy * screen->konami_tim.width + sx];
+                image->width) / out_width);
+            uint32_t pixel = image->pixels[
+                (size_t)sy * image->width + sx];
             unsigned long packed;
             if ((pixel >> 24u) == 0u)
             {
@@ -266,7 +273,9 @@ static void window_draw_tim(ShPcWindow* screen, int top)
 static void window_draw(ShPcWindow* screen)
 {
     const char* instructions = "ENTER / SPACE: skip logo | ESC: quit";
-    const char* disclaimer = screen->tim_loaded ?
+    bool loaded = screen->current_logo == SH_BOOT_LOGO_KCET ?
+        screen->kcet_tim_loaded : screen->tim_loaded;
+    const char* disclaimer = loaded ?
         "Original TIM decoded; PS1 GPU/fades not yet emulated" :
         "No original TIM supplied; graphics are diagnostic";
     int y = (int)(screen->height / 2u);
@@ -277,13 +286,15 @@ static void window_draw(ShPcWindow* screen)
         24, 90, screen->state_label, (int)strlen(screen->state_label));
     if (screen->logo_visible)
     {
-        if (screen->tim_loaded)
+        if (loaded)
         {
             window_draw_tim(screen, 120);
         }
         else
         {
-            const char* logo = "[KONAMI LOGO: ASSET NOT LOADED]";
+            const char* logo = screen->current_logo == SH_BOOT_LOGO_KCET ?
+                "[KCET LOGO: ASSET NOT LOADED]" :
+                "[KONAMI LOGO: ASSET NOT LOADED]";
             XDrawString(screen->display, screen->window, screen->gc,
                 24, y, logo, (int)strlen(logo));
         }
@@ -318,6 +329,7 @@ static void video_sink(void* userdata, const ShPresentationCommand* command)
             break;
         case SH_PRESENTATION_COMMAND_DRAW_BOOT_LOGO:
             screen->logo_visible = true;
+            screen->current_logo = command->boot_logo;
             break;
         case SH_PRESENTATION_COMMAND_PRESENT_FRAME:
 #if defined(SH_PC_HAVE_X11)
@@ -352,6 +364,9 @@ int main(int argc, char** argv)
     bool headless = false;
     int idx;
     const char* konami_tim_path = NULL;
+    const char* kcet_tim_path = NULL;
+    bool enable_kcet = false;
+    ShKcetCardRoute kcet_route = SH_KCET_CARD_NO_CARD;
 
     for (idx = 1; idx < argc; idx++)
     {
@@ -367,6 +382,32 @@ int main(int argc, char** argv)
         {
             konami_tim_path = argv[++idx];
         }
+        else if (strcmp(argv[idx], "--kcet") == 0)
+        {
+            enable_kcet = true;
+        }
+        else if (strcmp(argv[idx], "--kcet-tim") == 0 && idx + 1 < argc)
+        {
+            kcet_tim_path = argv[++idx];
+        }
+        else if (strcmp(argv[idx], "--kcet-card") == 0 && idx + 1 < argc)
+        {
+            const char* route = argv[++idx];
+            if (strcmp(route, "no-card") == 0)
+                kcet_route = SH_KCET_CARD_NO_CARD;
+            else if (strcmp(route, "no-space") == 0)
+                kcet_route = SH_KCET_CARD_NO_SPACE;
+            else if (strcmp(route, "no-save") == 0)
+                kcet_route = SH_KCET_CARD_NO_SAVE;
+            else if (strcmp(route, "has-save") == 0)
+                kcet_route = SH_KCET_CARD_HAS_SAVE;
+            else
+            {
+                fputs("invalid --kcet-card route\n", stderr);
+                return EXIT_FAILURE;
+            }
+            enable_kcet = true;
+        }
         else if (strcmp(argv[idx], "--max-ticks") == 0 && idx + 1 < argc)
         {
             if (!parse_positive(argv[++idx], &max_ticks))
@@ -378,7 +419,10 @@ int main(int argc, char** argv)
         else
         {
             fprintf(stderr,
-                "usage: %s [--headless] [--fast] [--max-ticks N] [--konami-tim file.TIM]\n", argv[0]);
+                "usage: %s [--headless] [--fast] [--max-ticks N] "
+                "[--konami-tim file.TIM] [--kcet] "
+                "[--kcet-tim file.TIM] "
+                "[--kcet-card no-card|no-space|no-save|has-save]\n", argv[0]);
             return EXIT_FAILURE;
         }
     }
@@ -387,12 +431,28 @@ int main(int argc, char** argv)
     screen.headless = headless;
     screen.width = 640u;
     screen.height = 480u;
+    screen.current_logo = SH_BOOT_LOGO_KONAMI;
+    if (kcet_tim_path != NULL)
+    {
+        enable_kcet = true;
+        if (sh_tim_load_file(kcet_tim_path, &screen.kcet_tim) != 0)
+        {
+            fprintf(stderr, "Unable to decode KCET TIM: %s\n",
+                kcet_tim_path);
+            return EXIT_FAILURE;
+        }
+        screen.kcet_tim_loaded = true;
+        printf("KCET TIM loaded: %ux%u %u-bpp\n",
+            screen.kcet_tim.width, screen.kcet_tim.height,
+            screen.kcet_tim.bits_per_pixel);
+    }
     if (konami_tim_path != NULL)
     {
         if (sh_tim_load_file(konami_tim_path, &screen.konami_tim) != 0)
         {
             fprintf(stderr, "Unable to decode Konami TIM: %s\n",
                 konami_tim_path);
+            sh_tim_image_free(&screen.kcet_tim);
             return EXIT_FAILURE;
         }
         screen.tim_loaded = true;
@@ -406,6 +466,7 @@ int main(int argc, char** argv)
     {
         fputs("X11 display unavailable; use --headless\n", stderr);
         sh_tim_image_free(&screen.konami_tim);
+        sh_tim_image_free(&screen.kcet_tim);
         return EXIT_FAILURE;
     }
 #else
@@ -413,6 +474,7 @@ int main(int argc, char** argv)
     {
         fputs("X11 backend not built; use --headless\n", stderr);
         sh_tim_image_free(&screen.konami_tim);
+        sh_tim_image_free(&screen.kcet_tim);
         return EXIT_FAILURE;
     }
 #endif
@@ -425,14 +487,35 @@ int main(int argc, char** argv)
         if (!headless) window_destroy(&screen);
 #endif
         sh_tim_image_free(&screen.konami_tim);
+        sh_tim_image_free(&screen.kcet_tim);
         return EXIT_FAILURE;
     }
 
+    if (enable_kcet)
+    {
+        result = sh_pc_app_enable_kcet(&app, kcet_route);
+        if (result != SH_RESULT_OK)
+        {
+            fprintf(stderr, "KCET setup: %s\n", sh_result_string(result));
+            sh_pc_app_destroy(&app);
+#if defined(SH_PC_HAVE_X11)
+            if (!headless) window_destroy(&screen);
+#endif
+            sh_tim_image_free(&screen.konami_tim);
+            sh_tim_image_free(&screen.kcet_tim);
+            return EXIT_FAILURE;
+        }
+    }
     printf("Silent Hill PC diagnostic ABI %s\n", SH_VERSION_STRING);
     printf("Backend: %s\n", headless ? "headless" : "X11");
-    puts(screen.tim_loaded ?
+    puts(screen.tim_loaded || screen.kcet_tim_loaded ?
         "NOTE: original TIM loaded; no PS1 GPU/audio/gameplay yet" :
         "NOTE: diagnostic placeholders; no original graphics/audio/gameplay");
+    if (enable_kcet)
+    {
+        puts("KCET: simulated fade, file queue and memory-card outcome; "
+            "not an original PS1 memory-card implementation");
+    }
 
     while (app.ticks < max_ticks && !screen.exit_requested)
     {
@@ -482,5 +565,6 @@ int main(int argc, char** argv)
     if (!headless) window_destroy(&screen);
 #endif
     sh_tim_image_free(&screen.konami_tim);
+    sh_tim_image_free(&screen.kcet_tim);
     return result == SH_RESULT_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 }

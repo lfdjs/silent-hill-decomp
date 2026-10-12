@@ -75,6 +75,12 @@ typedef uint32_t ShGameActions;
 #define SH_GAME_ACTION_WAIT_FADE_NONE (UINT32_C(1) << 11u)
 #define SH_GAME_ACTION_WAIT_LOGO_DELAY (UINT32_C(1) << 12u)
 #define SH_GAME_ACTION_WAIT_FILE_QUEUE (UINT32_C(1) << 13u)
+#define SH_GAME_ACTION_QUEUE_KCET_ASSETS (UINT32_C(1) << 14u)
+#define SH_GAME_ACTION_CHECK_MEMORY_CARD (UINT32_C(1) << 15u)
+#define SH_GAME_ACTION_QUEUE_STREAM_ASSETS (UINT32_C(1) << 16u)
+#define SH_GAME_ACTION_RESTORE_SETTINGS (UINT32_C(1) << 17u)
+#define SH_GAME_ACTION_SELECT_INTRO_ROUTE (UINT32_C(1) << 18u)
+#define SH_GAME_ACTION_UNSUPPORTED_SAVE_LOAD (UINT32_C(1) << 19u)
 
 typedef struct ShGameBootSignals
 {
@@ -112,6 +118,36 @@ typedef struct ShGameKonamiSignals
         false, \
         false, \
         false \
+    }
+
+/* The host supplies a tested memory-card outcome; this is not a PS1
+ * memory-card emulator. Numeric values deliberately do not alias the
+ * original SavegameEntryType values. */
+typedef enum ShKcetCardRoute
+{
+    SH_KCET_CARD_WAIT = 0,
+    SH_KCET_CARD_NO_CARD = 1,
+    SH_KCET_CARD_NO_SPACE = 2,
+    SH_KCET_CARD_NO_SAVE = 3,
+    SH_KCET_CARD_HAS_SAVE = 4
+} ShKcetCardRoute;
+
+typedef struct ShGameKcetSignals
+{
+    uint32_t struct_size;
+    uint32_t abi_version;
+    bool fade_none;
+    bool fade_finished;
+    bool file_queue_empty;
+    bool any_input;
+    ShKcetCardRoute card_route;
+} ShGameKcetSignals;
+
+#define SH_GAME_KCET_SIGNALS_INIT \
+    { \
+        (uint32_t)sizeof(ShGameKcetSignals), \
+        SH_ABI_VERSION_CURRENT, \
+        false, false, false, false, SH_KCET_CARD_WAIT \
     }
 
 typedef struct ShGameSnapshot
@@ -164,6 +200,12 @@ SH_API ShResult sh_runtime_game_set_boot_signals(
 SH_API ShResult sh_runtime_game_set_konami_signals(
     ShRuntime* runtime,
     const ShGameKonamiSignals* signals);
+
+/* Opt-in: KCET remains unsupported until a host explicitly supplies
+ * KCET signals. The default diagnostic/legacy trace is unchanged. */
+SH_API ShResult sh_runtime_game_set_kcet_signals(
+    ShRuntime* runtime,
+    const ShGameKcetSignals* signals);
 
 SH_API ShResult sh_runtime_game_get_snapshot(
     const ShRuntime* runtime,

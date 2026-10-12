@@ -66,6 +66,10 @@ _Static_assert(
     "struct_size must be the first Konami signal field");
 
 _Static_assert(
+    offsetof(ShGameKcetSignals, struct_size) == 0u,
+    "struct_size must be the first KCET signal field");
+
+_Static_assert(
     offsetof(ShGameSnapshot, struct_size) == 0u,
     "struct_size must be the first game snapshot field");
 
@@ -120,6 +124,7 @@ int main(void)
     ShOverlayStats overlay_stats = SH_OVERLAY_STATS_INIT;
     ShGameBootSignals game_signals = SH_GAME_BOOT_SIGNALS_INIT;
     ShGameKonamiSignals konami_signals = SH_GAME_KONAMI_SIGNALS_INIT;
+    ShGameKcetSignals kcet_signals = SH_GAME_KCET_SIGNALS_INIT;
     ShGameSnapshot game_snapshot = SH_GAME_SNAPSHOT_INIT;
     ShAudioCommand audio_command = SH_AUDIO_COMMAND_INIT;
     ShAudioStats audio_stats = SH_AUDIO_STATS_INIT;
@@ -143,6 +148,7 @@ int main(void)
     assert(overlay_stats.struct_size == (uint32_t)sizeof(overlay_stats));
     assert(game_signals.struct_size == (uint32_t)sizeof(game_signals));
     assert(konami_signals.struct_size == (uint32_t)sizeof(konami_signals));
+    assert(kcet_signals.struct_size == (uint32_t)sizeof(kcet_signals));
     assert(game_snapshot.struct_size == (uint32_t)sizeof(game_snapshot));
     assert(audio_command.struct_size == (uint32_t)sizeof(audio_command));
     assert(audio_stats.struct_size == (uint32_t)sizeof(audio_stats));

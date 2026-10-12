@@ -40,11 +40,29 @@ ShResult sh_pc_app_init(ShPcApp* app, ShPcVideoFn video_fn,
     return result;
 }
 
+ShResult sh_pc_app_enable_kcet(ShPcApp* app, ShKcetCardRoute route)
+{
+    if (app == NULL || app->runtime == NULL ||
+        route == SH_KCET_CARD_WAIT ||
+        (uint32_t)route > (uint32_t)SH_KCET_CARD_HAS_SAVE)
+    {
+        return SH_RESULT_INVALID_ARGUMENT;
+    }
+    if (app->ticks != 0u)
+    {
+        return SH_RESULT_INVALID_STATE;
+    }
+    app->kcet_enabled = true;
+    app->kcet_route = route;
+    return SH_RESULT_OK;
+}
+
 ShResult sh_pc_app_tick(ShPcApp* app, ShInputButtons buttons)
 {
     ShInputState input = SH_INPUT_STATE_INIT;
     ShGameBootSignals boot = SH_GAME_BOOT_SIGNALS_INIT;
     ShGameKonamiSignals konami = SH_GAME_KONAMI_SIGNALS_INIT;
+    ShGameKcetSignals kcet = SH_GAME_KCET_SIGNALS_INIT;
     ShAdvanceInfo advance = SH_ADVANCE_INFO_INIT;
     ShResult result;
 
@@ -74,6 +92,17 @@ ShResult sh_pc_app_tick(ShPcApp* app, ShInputButtons buttons)
         app->ticks >= app->fade_out_tick &&
         (app->ticks - app->fade_out_tick) >= UINT64_C(12));
 
+    kcet.file_queue_empty = true;
+    kcet.fade_none = (app->snapshot.state == SH_GAME_STATE_KCET_LOGO &&
+        app->snapshot.state_steps[0] == 1u &&
+        app->snapshot.state_tick_count >= UINT64_C(20));
+    kcet.fade_finished = (app->fade_out_seen &&
+        app->snapshot.state == SH_GAME_STATE_KCET_LOGO &&
+        app->ticks >= app->fade_out_tick &&
+        (app->ticks - app->fade_out_tick) >= UINT64_C(12));
+    kcet.any_input = (buttons != 0u);
+    kcet.card_route = app->kcet_route;
+
     result = sh_runtime_submit_input(app->runtime, &input);
     if (result == SH_RESULT_OK)
     {
@@ -82,6 +111,10 @@ ShResult sh_pc_app_tick(ShPcApp* app, ShInputButtons buttons)
     if (result == SH_RESULT_OK)
     {
         result = sh_runtime_game_set_konami_signals(app->runtime, &konami);
+    }
+    if (result == SH_RESULT_OK && app->kcet_enabled)
+    {
+        result = sh_runtime_game_set_kcet_signals(app->runtime, &kcet);
     }
     if (result == SH_RESULT_OK)
     {

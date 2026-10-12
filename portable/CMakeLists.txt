@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(
     silent_hill_portable
-    VERSION 0.6.0
+    VERSION 0.7.0
     LANGUAGES C)
 
 include(CTest)
@@ -171,7 +171,8 @@ if(BUILD_TESTING)
             game
             reference_trace
             presentation_audio
-            konami_trace)
+            konami_trace
+            kcet_trace)
 
         add_executable(
             "sh_${test_name}_tests"
@@ -241,6 +242,11 @@ if(SH_BUILD_PC_RUNNER)
             COMMAND silent-hill-pc --headless --fast --max-ticks 300)
         set_tests_properties(sh_pc_cli_smoke PROPERTIES
             PASS_REGULAR_EXPRESSION "Reached unsupported state: KcetLogo")
+        add_test(NAME sh_pc_kcet_cli_smoke
+            COMMAND silent-hill-pc --headless --fast --kcet
+                --max-ticks 500)
+        set_tests_properties(sh_pc_kcet_cli_smoke PROPERTIES
+            PASS_REGULAR_EXPRESSION "Reached unsupported state: MovieIntroFadeIn")
     endif()
 endif()
 
