@@ -92,10 +92,14 @@ Status: concluída.
 
 ## Etapa 09 — Runner de PC
 
-- janela e controles;
-- persistência;
-- vídeo e áudio de plataforma;
-- validação de progressão do jogo.
+Status: primeira fatia diagnóstica implementada.
+
+- janela Linux/X11 opcional, controles de teclado e modo headless;
+- consumidor das filas de apresentação/áudio já publicadas;
+- placeholders visuais explícitos, sem assets do jogo;
+- loop de 60 Hz lógico, rastreamento Boot -> Konami -> KCET;
+- testes integrados do host e smoke test da CLI;
+- persistência real, gamepad, FMV, GPU/ordering tables e SPU ainda pendentes.
 
 ## Etapa 10 — Template de ports
 

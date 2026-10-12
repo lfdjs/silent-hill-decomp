@@ -189,3 +189,41 @@ if(BUILD_TESTING)
             COMMAND "sh_${test_name}_tests")
     endforeach()
 endif()
+
+# Stage 09: diagnostic PC host (not linked into the portable ABI library).
+option(SH_BUILD_PC_RUNNER "Build the desktop diagnostic host." ON)
+if(SH_BUILD_PC_RUNNER)
+    add_library(sh_pc_app STATIC
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/pc/sh_pc_app.c")
+    target_link_libraries(sh_pc_app PUBLIC silent_hill_core)
+    target_include_directories(sh_pc_app PUBLIC
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/pc"
+        "${SH_PUBLIC_INCLUDE_DIR}")
+    sh_configure_target(sh_pc_app)
+
+    add_executable(silent-hill-pc
+        "${CMAKE_CURRENT_LIST_DIR}/../ports/pc/sh_pc_runner.c")
+    target_link_libraries(silent-hill-pc PRIVATE sh_pc_app)
+    sh_configure_target(silent-hill-pc)
+
+    if(UNIX AND NOT APPLE)
+        find_package(X11 QUIET)
+        if(X11_FOUND)
+            target_include_directories(silent-hill-pc PRIVATE ${X11_INCLUDE_DIR})
+            target_link_libraries(silent-hill-pc PRIVATE ${X11_LIBRARIES})
+            target_compile_definitions(silent-hill-pc PRIVATE SH_PC_HAVE_X11=1)
+        endif()
+    endif()
+
+    if(BUILD_TESTING)
+        add_executable(sh_pc_host_tests
+            "${SH_TEST_DIR}/test_pc_host.c")
+        target_link_libraries(sh_pc_host_tests PRIVATE sh_pc_app)
+        sh_configure_target(sh_pc_host_tests)
+        add_test(NAME sh_pc_host_tests COMMAND sh_pc_host_tests)
+        add_test(NAME sh_pc_cli_smoke
+            COMMAND silent-hill-pc --headless --fast --max-ticks 300)
+        set_tests_properties(sh_pc_cli_smoke PROPERTIES
+            PASS_REGULAR_EXPRESSION "Reached unsupported state: KcetLogo")
+    endif()
+endif()
