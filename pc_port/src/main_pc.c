@@ -22,6 +22,9 @@
 #include "sh_log.h"
 #include "psx_memory.h"
 #include "pc_config.h"
+#ifdef SH_SWITCH
+#include "sh_switch_profile.h"
+#endif
 #include "hires_override.h" /* HiresOverride_ClampBudgetToVram */
 #include "pc_audio_config.h"
 #include "pc_discord.h"
@@ -728,6 +731,9 @@ int main(int argc, char* argv[])
 
     /* Load config file */
     PcConfig_Load("config.cfg");
+#ifdef SH_SWITCH
+    ShSwitch_ApplyStartupConfig();
+#endif
     PcAudioConfig_Load("config.cfg");
 
     /* After the config load, or the parsed skip_intros would clobber it.

@@ -1,65 +1,74 @@
-# Stage 14A: Nintendo Switch Homebrew Preflight
+# Stage 14A.2 — Ryubing logging executable (Nintendo Switch homebrew)
 
-**Status:** experimental platform probe only; not a port of Silent Hill gameplay.
+This is an **ARM64 / Horizon `.nro` diagnostic**, not a playable Silent Hill build.
+It tests rendering, SDL2 controller input, audio, and writable `sdmc:` from Ryubing
+or a homebrew-enabled Nintendo Switch. It does not contain or read game assets;
+checking the optional game image just attempts read-only `fopen`.
 
-This directory lives in the **playable PsyCross fork** to validate the Switch
-hardware/toolchain before changing the existing PC engine. The Linux build
-continues to use `pc_port/CMakeLists.txt` and is untouched.
+## Requirements
 
-## What it exercises
-
-- `libnx` applet lifecycle + SD card mount;
-- SDL2 video and its Switch EGL/OpenGL ES renderer (colored bars);
-- joystick 0 / paired Joy-Con input (A changes colors and sounds; PLUS exits);
-- optional SDL2 audio output at 48 kHz;
-- optional *read-only visibility check* of a game disc image at
-  `sdmc:/switch/SilentHillSwitch/gamedata/Silent Hill (USA).bin`.
-
-No game data is embedded or distributed. A disc image is **not required** for
-the probe and is **not decoded** here.
-
-## Build (Linux host with devkitPro installed)
-
-Install devkitPro through its official instructions. Then install:
+Install [devkitPro](https://devkitpro.org/wiki/devkitPro_pacman) with the Switch
+package group and `switch-sdl2`, `switch-mesa`, and `switch-openal-soft`.
+On an already configured Linux machine:
 
 ```bash
 sudo dkp-pacman -S --needed switch-dev switch-sdl2 switch-mesa switch-openal-soft
-export DEVKITPRO=/opt/devkitpro
-export DEVKITA64=$DEVKITPRO/devkitA64
-export PATH="$DEVKITA64/bin:$DEVKITPRO/tools/bin:$PATH"
-source "$DEVKITPRO/switchvars.sh"
-make -C pc_port/switch -j2
 ```
 
-Output: `pc_port/switch/SilentHillSwitchProbe.nro`. We have **not yet cross-compiled
-this probe in the AI environment**; results must be confirmed with devkitPro.
+The developer machine **must** contain `/opt/devkitpro/switchvars.sh`,
+`/opt/devkitpro/libnx/switch_rules` and `aarch64-none-elf-gcc`. This is independent
+of whether you own a console. The previous trial halted during toolchain checking,
+so no working `.nro` has been observed yet.
 
-## Running (homebrew environment only)
+## One-command build and report
 
-Copy `SilentHillSwitchProbe.nro` to `sdmc:/switch/SilentHillSwitch/` on your own
-homebrew-enabled Switch. Run from the Homebrew Menu. The app writes:
+From the repository root:
+
+```bash
+./pc_port/switch/build-and-report.sh
+```
+
+The script captures the full output, produces a report tarball and, on success,
+copies `SilentHillSwitchProbe.nro` into `~/Downloads/` ready to load in Ryubing.
+It does **not** commit or push changes and doesn't build the full game.
+
+## Ryubing
+
+Select **File → Load Application From File** (or your version's equivalent),
+then open `~/Downloads/SilentHillSwitchProbe.nro`. The program displays five
+labeled status bars and automatically stops after approximately **30 seconds**,
+so no controller is required to finish a diagnostic run. Use **A / Enter** to
+change the background and test audio; **+ / Escape** exits early. It writes a
+heartbeat every five seconds, input events and initialization results.
+
+Persistent log path, **if `sdmc:` is writable in this emulator setup**:
 
 `sdmc:/switch/SilentHillSwitch/probe.log`
 
-The screen shows five horizontal bars (video / controller / audio / SD / optional
-image). Green = functional; red = failed; grey = optional/not evaluated. Press
-**A** to change the large panel color and play a brief sound; press **+** to exit.
+If Ryubing does not mount or expose a writable SD virtual filesystem for a
+standalone NRO, the on-screen **SD LOG** bar displays `FAIL`. In that case the
+app duplicates diagnostics to `SDL_Log` (look in Ryubing logs). Writing a log to
+`sdmc:` cannot be guaranteed where the emulator does not provide that service.
+To gather recent emulator logs for review:
 
-If a console cannot run homebrew, this software does not change that; no
-instructions or code for bypassing device security are provided.
+```bash
+./pc_port/switch/collect-ryubing-logs.sh
+```
 
-## Why this is not the complete port
+Do not share game disc images, keys or other copyrighted/security-sensitive files.
+Review any emulator log before sharing: it may contain your filesystem paths.
 
-The game is currently native x86-64 code relying on desktop PsyCross renderer,
-OpenAL, filesystem APIs, dynamic map overlays and 32->64 bit data conversions.
-The Switch needs ARM64 Horizon binaries (`.nro`), GLES-compatible PsyCross,
-static map overlays (`SH_STATIC_MAPS`), Switch filesystem, save handling and
-platform input/audio validation. None of these are claimed solved by this probe.
+## What this validates
 
-**Next gate (14B):** compile the existing game engine + PsyCross for ARM64,
-record cross-compiler errors and replace only the unsupported platform calls.
-Preserve the existing Linux build as a regression baseline and the original
-`portability/core-api` branch intact.
+- ARM64 Switch app can start in Ryubing;
+- accelerated SDL2 video **or explicitly logged software fallback**;
+- SDL2 controller recognition (and keyboard events if forwarded);
+- optional 48 kHz stereo SDL2 audio;
+- optional SD log output, with SDL fallback;
+- startup, periodic heartbeats, exit and status reporting.
 
-Licensing: port-specific source is GPL-3.0-or-later; follow the repo's
-`COPYRIGHT.md`. Original Konami game data is never included.
+**Not yet validated:** PsyCross, GTE/GPU engine, static overlays, original maps,
+loading a disc, menus, or controlling Harry in an ARM64 build.
+
+Licensing: GPL-3.0-or-later for this port-specific code. Follow the repository
+`COPYRIGHT.md`; Konami's original game assets are not distributed.

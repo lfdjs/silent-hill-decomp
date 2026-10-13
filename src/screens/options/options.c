@@ -2126,6 +2126,10 @@ void Options_MainOptionsMenu_Control(void) // 0x801E3770
     }
 
     g_MainOptionsMenu_PrevSelectedEntry = g_MainOptionsMenu_SelectedEntry;
+#ifdef SH_SWITCH
+    if (g_MainOptionsMenu_SelectedEntry == MainOptionsMenuEntry_ScreenPosition)
+        g_MainOptionsMenu_SelectedEntry = MainOptionsMenuEntry_Controller;
+#endif
 
 #ifdef SH_PC_PORT
     /* Mouse: hover selects (snapping past the highlight timer so the follow-up
@@ -2147,6 +2151,9 @@ void Options_MainOptionsMenu_Control(void) // 0x801E3770
                 if (my >= top && my < top + 16) { row = i; break; }
             }
 
+#ifdef SH_SWITCH
+            if (row == MainOptionsMenuEntry_ScreenPosition) row = -1;
+#endif
             if (row >= 0 && Pc_MouseCursor_Moved() && row != g_MainOptionsMenu_SelectedEntry)
             {
                 g_MainOptionsMenu_SelectedEntry     = row;
@@ -2234,6 +2241,10 @@ void Options_MainOptionsMenu_Control(void) // 0x801E3770
 
         g_Options_SelectionHighlightTimer = 0;
         g_MainOptionsMenu_SelectedEntry   = (g_MainOptionsMenu_SelectedEntry + (MainOptionsMenuEntry_Count - 1)) % MainOptionsMenuEntry_Count;
+#ifdef SH_SWITCH
+        if (g_MainOptionsMenu_SelectedEntry == MainOptionsMenuEntry_ScreenPosition)
+            g_MainOptionsMenu_SelectedEntry = MainOptionsMenuEntry_Controller;
+#endif
     }
     if (g_Controller0->pulsedBtnFlags & ControllerFlag_LStickDown)
     {
@@ -2241,6 +2252,10 @@ void Options_MainOptionsMenu_Control(void) // 0x801E3770
 
         g_Options_SelectionHighlightTimer = 0;
         g_MainOptionsMenu_SelectedEntry   = (g_MainOptionsMenu_SelectedEntry + 1) % MainOptionsMenuEntry_Count;
+#ifdef SH_SWITCH
+        if (g_MainOptionsMenu_SelectedEntry == MainOptionsMenuEntry_ScreenPosition)
+            g_MainOptionsMenu_SelectedEntry = MainOptionsMenuEntry_Vibration;
+#endif
     }
 
     // Handle config change.
@@ -2276,6 +2291,10 @@ void Options_MainOptionsMenu_Control(void) // 0x801E3770
             break;
 
         case MainOptionsMenuEntry_ScreenPosition:
+#ifdef SH_SWITCH
+            /* Hidden on Switch; never expose desktop PC Options. */
+            break;
+#else
             // Enter screen position screen.
             if (g_Controller0->clickedBtnFlags & g_GameWorkPtr->config.controllerConfig.enter)
             {
@@ -2291,6 +2310,7 @@ void Options_MainOptionsMenu_Control(void) // 0x801E3770
                 g_GameWork.gameStateSteps[1] = 0;
                 g_GameWork.gameStateSteps[2] = 0;
             }
+#endif /* !SH_SWITCH */
             break;
 
         case MainOptionsMenuEntry_Brightness:
@@ -2745,6 +2765,9 @@ void Options_MainOptionsMenu_EntryStringsDraw(void) // 0x801E42EC
     // Draw entry strings.
     for (i = 0; i < MainOptionsMenuEntry_Count; i++)
     {
+#ifdef SH_SWITCH
+        if (i == MainOptionsMenuEntry_ScreenPosition) continue;
+#endif
         Gfx_StringSetPosition(LINE_BASE_X, LINE_BASE_Y + (i * LINE_OFFSET_Y));
         Gfx_Strings2dLayerIdxSet(8);
         Gfx_StringDraw(ENTRY_STRS[i], DEFAULT_MAP_MESSAGE_LENGTH);
@@ -2932,6 +2955,9 @@ void Options_MainOptionsMenu_SelectionHighlightDraw(void) // 0x801E472C
     // Draw selection bullet points.
     for (i = 0; i < MainOptionsMenuEntry_Count; i++)
     {
+#ifdef SH_SWITCH
+        if (i == MainOptionsMenuEntry_ScreenPosition) continue;
+#endif
         // Set bullet quads.
         quadVerts = (DVECTOR*)&bulletQuads;
         for (j = 0; j < RECT_VERT_COUNT; j++)

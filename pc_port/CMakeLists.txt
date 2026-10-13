@@ -30,6 +30,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # =============================================================================
 option(SH_USE_OPENGL "Use OpenGL renderer (via PsyCross)" ON)
 option(SH_DEBUG "Enable debug output" OFF)
+option(SH_SWITCH "Experimental Nintendo Switch policy hooks (requires platform port)" OFF)
 option(SH_ASAN "Enable AddressSanitizer for memory corruption detection" OFF)
 # FMV ffmpeg fallback (native h264/h265/vp9/av1 in mp4/mkv/webm/avi override files).
 # ON by default and free to be: ffmpeg is loaded at runtime, so this costs only the
@@ -261,6 +262,18 @@ add_executable(SilentHillPC
     ${MAP_SOURCES}
     ${SH_APP_RESOURCES}
 )
+
+if(SH_SWITCH)
+    target_compile_definitions(SilentHillPC PRIVATE SH_SWITCH=1 SH_PC_PORT=1)
+    target_sources(SilentHillPC PRIVATE src/sh_switch_profile.c)
+    target_link_libraries(SilentHillPC PRIVATE nx)
+    if(SH_BUILD_MAP_DLLS)
+        message(FATAL_ERROR "Switch cannot use desktop .so map overlays; use SH_STATIC_MAPS=ON")
+    endif()
+    if(NOT SH_STATIC_MAPS)
+        message(FATAL_ERROR "Switch build requires SH_STATIC_MAPS=ON")
+    endif()
+endif()
 
 # Export symbols from the executable so map overlay DLLs can link against it.
 # On Linux, ENABLE_EXPORTS adds -rdynamic so dlopen'd libraries see exe symbols.

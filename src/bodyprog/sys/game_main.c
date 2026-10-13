@@ -1,3 +1,6 @@
+#ifdef SH_SWITCH
+#include "sh_switch_profile.h"
+#endif
 #include "game.h"
 
 #ifdef SH_PC_PORT
@@ -2157,6 +2160,9 @@ void MainLoop(void) // 0x80032EE0
     // Run game.
     while (true)
     {
+#ifdef SH_SWITCH
+        ShSwitch_PollDisplayMode();
+#endif
         g_TickCount++;
 
 #ifdef SH_PC_PORT
